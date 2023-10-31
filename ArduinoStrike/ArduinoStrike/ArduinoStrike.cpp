@@ -99,8 +99,8 @@ int main()
 				{
 					if (GetAsyncKeyState(VK_LBUTTON) & 0x8000)
 					{
-						sleep_for(milliseconds(delay[i]));
 						arduino.send_data("MOUSE_LEFT_HOLDED:" + to_string(x[i]) + "," + to_string(y[i]) + "," + to_string(delay[i]));
+						sleep_for(milliseconds(delay[i]));
 					}
 				}
 			}
