@@ -40,12 +40,86 @@ void Utils::Install()
 	SetConsoleMode(random);
 }
 
+bool Utils::validateConfig(Config &config)
+{
+	return ((config.bhop == 0 || config.bhop == 1) && (config.rapid_fire == 0 || config.rapid_fire == 1) && (config.sensitivity >= 1 && config.sensitivity <= 8)) ? true : false;
+}
+
+void Utils::LoadConfig(Config &config)
+{
+	string input;
+	ifstream file("Settings.cfg");
+
+	if (!file.is_open())
+	{
+		do
+		{
+			cout << "Enter bhop boolean value (1/0) -> ";
+			getline(cin, input);
+			istringstream iss(input);
+			if (!(iss >> config.bhop) || (config.bhop != 0 && config.bhop != 1))
+			{
+				config.bhop = -1;
+				cout << "Invalid input! Please enter 1 or 0." << endl << endl;
+			}
+		}
+		while (config.bhop != 0 && config.bhop != 1);
+
+		do
+		{
+			cout << "Enter rapid-fire boolean value (1/0) -> ";
+			getline(cin, input);
+			istringstream iss(input);
+			if (!(iss >> config.rapid_fire) || (config.rapid_fire != 0 && config.rapid_fire != 1))
+			{
+				config.rapid_fire = -1;
+				cout << "Invalid input! Please enter 1 or 0." << endl << endl;
+			}
+		}
+		while (config.rapid_fire != 0 && config.rapid_fire != 1);
+
+		do
+		{
+			cout << "Enter sensitivity integer value (1-8) -> ";
+			getline(cin, input);
+			istringstream iss(input);
+			if (!(iss >> config.sensitivity) || config.sensitivity < 1 || config.sensitivity > 8)
+			{
+				config.sensitivity = -1;
+				cout << "Invalid input! Please enter an integer between 1 and 8." << endl << endl;
+			}
+		}
+		while (config.sensitivity < 1 || config.sensitivity > 8);
+
+		ofstream out("Settings.cfg");
+		out << config.bhop << endl << config.rapid_fire << endl << config.sensitivity;
+		out.close();
+
+		cout << "Configuration successfully saved!" << endl;
+	}
+	else
+	{
+		file >> config.bhop;
+		file >> config.rapid_fire;
+		file >> config.sensitivity;
+		file.close();
+
+		if (!validateConfig(config))
+		{
+			cerr << "Invalid values in config file. Please enter valid values!" << endl;
+			remove("Settings.cfg");
+			exit(1);
+		}
+
+		cout << "Configuration successfully loaded!" << endl;
+	}
+}
+
 void Utils::PrintHotkeys(const string &hotkeys)
 {
 	CONSOLE_SCREEN_BUFFER_INFO csbi;
 	GetConsoleScreenBufferInfo(GetStdHandle(STD_OUTPUT_HANDLE), &csbi);
 	int width = csbi.srWindow.Right - csbi.srWindow.Left + 1;
-
 	int padding = (width - hotkeys.size()) / 2;
 
 	COORD coord;
@@ -53,7 +127,7 @@ void Utils::PrintHotkeys(const string &hotkeys)
 	coord.Y = csbi.srWindow.Bottom;
 	SetConsoleCursorPosition(GetStdHandle(STD_OUTPUT_HANDLE), coord);
 
-	for (int i = 0; i < padding; ++i)
+	for (int i = 0; i < padding; i++)
 	{
 		printf(" ");
 	}
@@ -80,7 +154,7 @@ void Utils::PrintAscii(const string &asciiArt)
 
 	SHORT startY = static_cast<SHORT>(height - lines.size()) / 2;
 
-	for (SHORT i = 0; i < static_cast<SHORT>(lines.size()); ++i)
+	for (SHORT i = 0; i < static_cast<SHORT>(lines.size()); i++)
 	{
 		const string &line = lines[i];
 
@@ -149,4 +223,18 @@ void Utils::SetConsoleMode(const string &title)
 	SetConsoleScreenBufferSize(console, size);
 	ShowWindow(GetConsoleWindow(), SW_MAXIMIZE);
 	SetConsoleTitleA(title.c_str());
+}
+
+Weapon Utils::weaponState(Weapon weapon)
+{
+	if (GetAsyncKeyState(VK_F12) & 1) return OFF;
+
+	if (GetAsyncKeyState(VK_F1) & 1) return UMP;
+	if (GetAsyncKeyState(VK_F2) & 1) return M4A1;
+	if (GetAsyncKeyState(VK_F3) & 1) return M4A4;
+	if (GetAsyncKeyState(VK_F4) & 1) return AK47;
+	if (GetAsyncKeyState(VK_F5) & 1) return GALIL;
+	if (GetAsyncKeyState(VK_F6) & 1) return FAMAS;
+
+	return weapon;
 }

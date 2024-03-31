@@ -1,55 +1,46 @@
 #include "Utils.h"
 #include "Arduino.h"
-int sensitivity;
-
 Weapon weapon = OFF;
-Weapon weaponState(Weapon weapon)
-{
-	if (GetAsyncKeyState(VK_F12) & 1) return OFF;
-
-	if (GetAsyncKeyState(VK_F1) & 1) return UMP;
-	if (GetAsyncKeyState(VK_F2) & 1) return M4A1;
-	if (GetAsyncKeyState(VK_F3) & 1) return M4A4;
-	if (GetAsyncKeyState(VK_F4) & 1) return AK47;
-	if (GetAsyncKeyState(VK_F5) & 1) return GALIL;
-	if (GetAsyncKeyState(VK_F6) & 1) return FAMAS;
-
-	return weapon;
-}
 
 int main()
 {
+	string text;
 	Utils::Install();
-	Arduino arduino("Arduino Leonardo");
 
-	char input[10];
-	do
-	{
-		printf("Enter sensitivity -> ");
-		fgets(input, sizeof(input), stdin);
-	}
-	while (sscanf_s(input, "%d", &sensitivity) != 1 || sensitivity < 1 || sensitivity > 8);
+	Config config;
+	Utils::LoadConfig(config);
 
-	string text =
-	R"(__      __       _   _            )" "\n"
-	R"(\ \    / /__ _ _| |_(_)_ _  __ _  )" "\n"
-	R"( \ \/\/ / _ \ '_| / / | ' \/ _` | )" "\n"
-	R"(  \_/\_/\___/_| |_\_\_|_||_\__, | )" "\n"
-	R"(                           |___/  )" "\n"
-	R"(                                  )" "\n"
-	R"(   CTRL + C to stop the program   )" "\n";
+	text = R"(
+	    ___                      _   _                  
+	   / __|___ _ _  _ _  ___ __| |_(_)_ _  __ _        
+	  | (__/ _ \ ' \| ' \/ -_) _|  _| | ' \/ _` |_ _ _  
+	   \___\___/_||_|_||_\___\__|\__|_|_||_\__, (_|_|_) 
+	                                       |___/        )";
 
 	Utils::PrintAscii(text);
-	Utils::PrintHotkeys("[F1] - OFF | [F1] - UMP | [F2] - M4A1 | [F3] - M4A4 | [F4] - AK47 | [F5] - GALIL | [F6] - FAMAS");
+
+	Arduino arduino("Arduino Leonardo");
+
+	text = R"(
+	__      __       _   _            
+	\ \    / /__ _ _| |_(_)_ _  __ _  
+	 \ \/\/ / _ \ '_| / / | ' \/ _` | 
+	  \_/\_/\___/_| |_\_\_|_||_\__, | 
+	                           |___/  
+	                                  
+	   CTRL + C to stop the program   )";
+
+	Utils::PrintAscii(text);
+	Utils::PrintHotkeys("[F12] - OFF | [F1] - UMP | [F2] - M4A1 | [F3] - M4A4 | [F4] - AK47 | [F5] - GALIL | [F6] - FAMAS");
 
 	while (true)
 	{
-		weapon = weaponState(weapon);
+		weapon = Utils::weaponState(weapon);
 		string message = arduino.readStringUntil('\n');
 
 		if (message.rfind("ARDUINO_INITIATED", 0) != 0) 
 		{
-			double modifier = 2.52 / sensitivity;
+			double modifier = 2.52 / config.sensitivity;
 
 			if (GetAsyncKeyState(VK_LBUTTON) & 0x8000)
 			{
@@ -95,20 +86,29 @@ int main()
 						break;
 				}
 
-				for (size_t i = 0; i < x.size(); ++i)
+				for (size_t i = 0; i < x.size(); i++)
 				{
 					if (GetAsyncKeyState(VK_LBUTTON) & 0x8000)
 					{
-						arduino.send_data("MOUSE_LEFT_HOLDED:" + to_string(x[i]) + "," + to_string(y[i]) + "," + to_string(delay[i]));
-						sleep_for(milliseconds(delay[i]));
+						future<int> future = async(launch::async, [&]()
+						{
+							Sleep(delay[i]);
+							return GetAsyncKeyState(VK_LBUTTON) & 0x8000;
+						});
+
+						if (future.get())
+						{
+							arduino.send_data("MOUSE_LEFT_HOLDED:" + to_string(x[i]) + "," + to_string(y[i]) + "," + to_string(delay[i]));
+						}
 					}
 				}
+
 			}
-			if (GetAsyncKeyState(VK_SPACE) & 0x8000)
+			if (GetAsyncKeyState(VK_SPACE) & 0x8000 && config.bhop != 0)
 			{
 				arduino.send_data("SPACE_BUTTON_HOLDED");
 			}
-			if (GetAsyncKeyState(VK_MBUTTON) & 0x8000)
+			if (GetAsyncKeyState(VK_MBUTTON) & 0x8000 && config.rapid_fire != 0)
 			{
 				arduino.send_data("MOUSE_MIDDLE_HOLDED");
 			}
