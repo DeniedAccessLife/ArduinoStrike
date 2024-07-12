@@ -1,22 +1,27 @@
 #pragma once
 #pragma comment(lib, "Setupapi.lib")
-#include <Windows.h>
+
+#include <thread>
 #include <iostream>
+#include <windows.h>
 #include <devguid.h>
 #include <SetupAPI.h>
 
 using namespace std;
+using namespace chrono;
+using namespace this_thread;
 
 class Arduino
 {
 public:
-	Arduino(LPCSTR device_name);
-	~Arduino();
-	bool send_data(const string& message) const;
-	bool available() const;
-	string readStringUntil(char delimiter) const;
-	static bool get_device(LPCSTR friendly_name, LPSTR com_port);
+    ~Arduino();
+    Arduino(LPCSTR device_name);
+
+    bool WriteMessage(const string& message) const;
+    string ReceiveMessage(char delimiter) const;
 
 private:
-	HANDLE m_hArduino;
+    HANDLE m_arduinoHandle;
+    bool IsAvailable() const;
+    bool GetDevice(LPCSTR friendly_name, LPSTR com_port);
 };

@@ -24,5 +24,7 @@
     <ClInclude Include="Utils.h">
       <Filter>Utils</Filter>
     </ClInclude>
+    <ClInclude Include="AsciiArt.h" />
+    <ClInclude Include="Weapons.h" />
   </ItemGroup>
 </Project>

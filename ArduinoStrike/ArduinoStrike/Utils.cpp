@@ -2,15 +2,15 @@
 
 void Utils::Install()
 {
-	string random = randomData(16);
+	string random = GenerateRandomData(16);
 
 	char buffer[MAX_PATH];
 	GetModuleFileNameA(NULL, buffer, MAX_PATH);
 
-	string executable = buffer;
-	string tempFolder = temp_directory_path().string();
+	path executable = buffer;
+	path tempFolder = temp_directory_path();
 
-	if (executable.substr(0, tempFolder.size()) != tempFolder)
+	if (executable.string().substr(0, tempFolder.string().size()) != tempFolder.string())
 	{
 		path destinationFolder = tempFolder / random;
 		path destinationApplication = destinationFolder / (random + ".exe");
@@ -27,10 +27,19 @@ void Utils::Install()
 			si.cb = sizeof(si);
 			ZeroMemory(&pi, sizeof(pi));
 
-			CreateProcessA(NULL, (LPSTR)destinationApplication.string().c_str(), NULL, NULL, FALSE, 0, NULL, NULL, &si, &pi);
-			ExitProcess(0);
+			if (CreateProcessA(NULL, (LPSTR)destinationApplication.string().c_str(), NULL, NULL, FALSE, 0, NULL, NULL, &si, &pi))
+			{
+				CloseHandle(pi.hThread);
+				CloseHandle(pi.hProcess);
+				ExitProcess(0);
+			}
+			else
+			{
+				cerr << "Failed to create process." << endl;
+				exit(1);
+			}
 		}
-		catch (exception ex)
+		catch (exception& ex)
 		{
 			cerr << "Error: " << ex.what() << endl;
 			exit(1);
@@ -40,12 +49,7 @@ void Utils::Install()
 	SetConsoleMode(random);
 }
 
-bool Utils::validateConfig(Config &config)
-{
-	return ((config.bhop == 0 || config.bhop == 1) && (config.rapid_fire == 0 || config.rapid_fire == 1) && (config.sensitivity >= 1 && config.sensitivity <= 8)) ? true : false;
-}
-
-void Utils::LoadConfig(Config &config)
+void Utils::LoadConfig(Config& config)
 {
 	string input;
 	ifstream file("Settings.cfg");
@@ -70,13 +74,13 @@ void Utils::LoadConfig(Config &config)
 			cout << "Enter rapid-fire boolean value (1/0) -> ";
 			getline(cin, input);
 			istringstream iss(input);
-			if (!(iss >> config.rapid_fire) || (config.rapid_fire != 0 && config.rapid_fire != 1))
+			if (!(iss >> config.rapidFire) || (config.rapidFire != 0 && config.rapidFire != 1))
 			{
-				config.rapid_fire = -1;
+				config.rapidFire = -1;
 				cout << "Invalid input! Please enter 1 or 0." << endl << endl;
 			}
 		}
-		while (config.rapid_fire != 0 && config.rapid_fire != 1);
+		while (config.rapidFire != 0 && config.rapidFire != 1);
 
 		do
 		{
@@ -92,7 +96,7 @@ void Utils::LoadConfig(Config &config)
 		while (config.sensitivity < 1 || config.sensitivity > 8);
 
 		ofstream out("Settings.cfg");
-		out << config.bhop << endl << config.rapid_fire << endl << config.sensitivity;
+		out << config.bhop << endl << config.rapidFire << endl << config.sensitivity;
 		out.close();
 
 		cout << "Configuration successfully saved!" << endl;
@@ -100,11 +104,11 @@ void Utils::LoadConfig(Config &config)
 	else
 	{
 		file >> config.bhop;
-		file >> config.rapid_fire;
+		file >> config.rapidFire;
 		file >> config.sensitivity;
 		file.close();
 
-		if (!validateConfig(config))
+		if (!ValidateConfig(config))
 		{
 			cerr << "Invalid values in config file. Please enter valid values!" << endl;
 			remove("Settings.cfg");
@@ -115,34 +119,19 @@ void Utils::LoadConfig(Config &config)
 	}
 }
 
-void Utils::PrintHotkeys(const string &hotkeys)
+bool Utils::ValidateConfig(Config& config)
 {
-	CONSOLE_SCREEN_BUFFER_INFO csbi;
-	GetConsoleScreenBufferInfo(GetStdHandle(STD_OUTPUT_HANDLE), &csbi);
-	int width = csbi.srWindow.Right - csbi.srWindow.Left + 1;
-	int padding = (width - hotkeys.size()) / 2;
-
-	COORD coord;
-	coord.X = 0;
-	coord.Y = csbi.srWindow.Bottom;
-	SetConsoleCursorPosition(GetStdHandle(STD_OUTPUT_HANDLE), coord);
-
-	for (int i = 0; i < padding; i++)
-	{
-		printf(" ");
-	}
-
-	printf("%s", hotkeys.c_str());
+	return ((config.bhop == 0 || config.bhop == 1) && (config.rapidFire == 0 || config.rapidFire == 1) && (config.sensitivity >= 1 && config.sensitivity <= 8)) ? true : false;
 }
 
-void Utils::PrintAscii(const string &asciiArt)
+void Utils::PrintAscii(const string& asciiArt)
 {
 	ConsoleClear();
 
 	vector<string> lines;
 	istringstream iss(asciiArt);
 
-	for (string line; getline(iss, line); )
+	for (string line; getline(iss, line);)
 	{
 		lines.push_back(line);
 	}
@@ -160,13 +149,33 @@ void Utils::PrintAscii(const string &asciiArt)
 
 		SHORT padding = static_cast<SHORT>(width - line.size()) / 2;
 
-		COORD coord;
+		COORD coord = {};
 		coord.X = padding;
 		coord.Y = startY + i;
 		SetConsoleCursorPosition(GetStdHandle(STD_OUTPUT_HANDLE), coord);
 
-		printf("%s", line.c_str());
+		cout << line;
 	}
+}
+
+void Utils::PrintHotkeys(const string& hotkeys)
+{
+	CONSOLE_SCREEN_BUFFER_INFO csbi;
+	GetConsoleScreenBufferInfo(GetStdHandle(STD_OUTPUT_HANDLE), &csbi);
+	int width = csbi.srWindow.Right - csbi.srWindow.Left + 1;
+	int padding = (width - hotkeys.size()) / 2;
+
+	COORD coord = {};
+	coord.X = 0;
+	coord.Y = csbi.srWindow.Bottom;
+	SetConsoleCursorPosition(GetStdHandle(STD_OUTPUT_HANDLE), coord);
+
+	for (int i = 0; i < padding; i++)
+	{
+		cout << " ";
+	}
+
+	cout << hotkeys;
 }
 
 void Utils::ConsoleClear()
@@ -188,7 +197,22 @@ void Utils::ConsoleClear()
 	SetConsoleCursorInfo(console, &cursorInfo);
 }
 
-string Utils::randomData(int length)
+void Utils::SetConsoleMode(const string& title)
+{
+	HANDLE console = GetStdHandle(STD_OUTPUT_HANDLE);
+	CONSOLE_SCREEN_BUFFER_INFO buffer;
+	GetConsoleScreenBufferInfo(console, &buffer);
+
+	COORD size = {};
+	size.X = buffer.srWindow.Right - buffer.srWindow.Left + 1;
+	size.Y = buffer.srWindow.Bottom - buffer.srWindow.Top + 1;
+
+	SetConsoleScreenBufferSize(console, size);
+	ShowWindow(GetConsoleWindow(), SW_MAXIMIZE);
+	SetConsoleTitleA(title.c_str());
+}
+
+string Utils::GenerateRandomData(int length)
 {
 	string result;
 	srand((unsigned int)time(NULL));
@@ -208,33 +232,4 @@ string Utils::randomData(int length)
 	}
 
 	return result;
-}
-
-void Utils::SetConsoleMode(const string &title)
-{
-	HANDLE console = GetStdHandle(STD_OUTPUT_HANDLE);
-	CONSOLE_SCREEN_BUFFER_INFO buffer;
-	GetConsoleScreenBufferInfo(console, &buffer);
-
-	COORD size;
-	size.X = buffer.srWindow.Right - buffer.srWindow.Left + 1;
-	size.Y = buffer.srWindow.Bottom - buffer.srWindow.Top + 1;
-
-	SetConsoleScreenBufferSize(console, size);
-	ShowWindow(GetConsoleWindow(), SW_MAXIMIZE);
-	SetConsoleTitleA(title.c_str());
-}
-
-Weapon Utils::weaponState(Weapon weapon)
-{
-	if (GetAsyncKeyState(VK_F12) & 1) return OFF;
-
-	if (GetAsyncKeyState(VK_F1) & 1) return UMP;
-	if (GetAsyncKeyState(VK_F2) & 1) return M4A1;
-	if (GetAsyncKeyState(VK_F3) & 1) return M4A4;
-	if (GetAsyncKeyState(VK_F4) & 1) return AK47;
-	if (GetAsyncKeyState(VK_F5) & 1) return GALIL;
-	if (GetAsyncKeyState(VK_F6) & 1) return FAMAS;
-
-	return weapon;
 }
