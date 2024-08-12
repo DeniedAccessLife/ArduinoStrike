@@ -5,23 +5,21 @@
 
 Weapon weapon = OFF;
 
-static void HandleWeaponFire(Arduino& arduino, const vector<double>& x, const vector<double>& y, const vector<int>& delay)
+static void HandleWeaponFire(const Arduino& arduino, const vector<double>& x, const vector<double>& y, const vector<int>& delay, const Config& config)
 {
     for (size_t i = 0; i < x.size(); i++)
     {
-        if (IsKeyHolded(VK_LBUTTON))
-        {
-            sleep_for(milliseconds(delay[i]));
+        bool isRecoilControlActive = IsKeyHolded(VK_LBUTTON) && (config.confirmationKey == 0 || IsKeyHolded(config.confirmationKey));
 
-            if (IsKeyHolded(VK_LBUTTON))
-            {
-                arduino.WriteMessage("MOUSE_LEFT_HOLDED:" + to_string(x[i]) + "," + to_string(y[i]) + "," + to_string(delay[i]));
-            }
+        if (isRecoilControlActive)
+        {
+            arduino.WriteMessage("MOUSE_LEFT_HOLDED:" + to_string(x[i]) + "," + to_string(y[i]) + "," + to_string(delay[i]));
+            sleep_for(milliseconds(delay[i]));
         }
     }
 }
 
-static void ProcessKeyEvents(Arduino& arduino, Config& config)
+static void ProcessKeyEvents(const Arduino& arduino, const Config& config)
 {
     if (IsKeyHolded(VK_SPACE) && config.bhop != 0)
     {
@@ -56,11 +54,12 @@ int main()
         if (message.rfind("ARDUINO_INITIATED", 0) != 0)
         {
             double modifier = 2.52 / config.sensitivity;
+            bool isRecoilControlActive = IsKeyHolded(VK_LBUTTON) && (config.confirmationKey == 0 || IsKeyHolded(config.confirmationKey));
 
-            if (IsKeyHolded(VK_LBUTTON))
+            if (isRecoilControlActive)
             {
                 WeaponData data = GetWeaponData(weapon, modifier);
-                HandleWeaponFire(arduino, data.x, data.y, data.delay);
+                HandleWeaponFire(arduino, data.x, data.y, data.delay, config);
             }
 
             ProcessKeyEvents(arduino, config);

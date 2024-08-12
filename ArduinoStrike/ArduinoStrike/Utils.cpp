@@ -51,52 +51,17 @@ void Utils::Install()
 
 void Utils::LoadConfig(Config& config)
 {
-	string input;
 	ifstream file("Settings.cfg");
 
 	if (!file.is_open())
 	{
-		do
-		{
-			cout << "Enter bhop boolean value (1/0) -> ";
-			getline(cin, input);
-			istringstream iss(input);
-			if (!(iss >> config.bhop) || (config.bhop != 0 && config.bhop != 1))
-			{
-				config.bhop = -1;
-				cout << "Invalid input! Please enter 1 or 0." << endl << endl;
-			}
-		}
-		while (config.bhop != 0 && config.bhop != 1);
-
-		do
-		{
-			cout << "Enter rapid-fire boolean value (1/0) -> ";
-			getline(cin, input);
-			istringstream iss(input);
-			if (!(iss >> config.rapidFire) || (config.rapidFire != 0 && config.rapidFire != 1))
-			{
-				config.rapidFire = -1;
-				cout << "Invalid input! Please enter 1 or 0." << endl << endl;
-			}
-		}
-		while (config.rapidFire != 0 && config.rapidFire != 1);
-
-		do
-		{
-			cout << "Enter sensitivity integer value (1-8) -> ";
-			getline(cin, input);
-			istringstream iss(input);
-			if (!(iss >> config.sensitivity) || config.sensitivity < 1 || config.sensitivity > 8)
-			{
-				config.sensitivity = -1;
-				cout << "Invalid input! Please enter an integer between 1 and 8." << endl << endl;
-			}
-		}
-		while (config.sensitivity < 1 || config.sensitivity > 8);
+		config.bhop = GetValidatedIntInput("Enter bhop boolean value (1/0) -> ", 0, 1);
+		config.rapidFire = GetValidatedIntInput("Enter rapid-fire boolean value (1/0) -> ", 0, 1);
+		config.sensitivity = GetValidatedIntInput("Enter sensitivity integer value (1-8) -> ", 1, 8);
+		config.confirmationKey = GetValidatedKeyInput("Enter recoil control confirmation key (0/VK_CODE) -> ");
 
 		ofstream out("Settings.cfg");
-		out << config.bhop << endl << config.rapidFire << endl << config.sensitivity;
+		out << config.bhop << endl << config.rapidFire << endl << config.sensitivity << endl << hex << config.confirmationKey;
 		out.close();
 
 		cout << "Configuration successfully saved!" << endl;
@@ -106,6 +71,7 @@ void Utils::LoadConfig(Config& config)
 		file >> config.bhop;
 		file >> config.rapidFire;
 		file >> config.sensitivity;
+		file >> hex >> config.confirmationKey;
 		file.close();
 
 		if (!ValidateConfig(config))
@@ -119,9 +85,64 @@ void Utils::LoadConfig(Config& config)
 	}
 }
 
+int Utils::GetValidatedIntInput(const string& prompt, int min, int max)
+{
+	string input;
+	int value = -1;
+
+	do
+	{
+		cout << prompt;
+		getline(cin, input);
+		istringstream iss(input);
+
+		if (!(iss >> value) || value < min || value > max)
+		{
+			value = -1;
+
+			if (min == 0 && max == 1)
+			{
+				cout << "Invalid input! Please enter 0 or 1." << endl << endl;
+			}
+			else
+			{
+				cout << "Invalid input! Please enter an integer between " << min << " and " << max << "." << endl << endl;
+			}
+		}
+	} while (value == -1);
+
+	return value;
+}
+
+int Utils::GetValidatedKeyInput(const string& prompt)
+{
+	string input;
+	int value = -1;
+
+	do
+	{
+		cout << prompt;
+		getline(cin, input);
+		istringstream iss(input);
+
+		if (!(iss >> hex >> value) || (value != 0 && (value < 0x01 || value > 0xFE)))
+		{
+			value = -1;
+			cout << "Invalid input! Please enter 0 or VK_CODE." << endl << endl;
+		}
+	} while (value == -1);
+
+	return value;
+}
+
 bool Utils::ValidateConfig(Config& config)
 {
-	return ((config.bhop == 0 || config.bhop == 1) && (config.rapidFire == 0 || config.rapidFire == 1) && (config.sensitivity >= 1 && config.sensitivity <= 8)) ? true : false;
+	bool validBhop = (config.bhop == 0 || config.bhop == 1);
+	bool validRapidFire = (config.rapidFire == 0 || config.rapidFire == 1);
+	bool validSensitivity = (config.sensitivity >= 1 && config.sensitivity <= 8);
+	bool validConfirmationKey = (config.confirmationKey == 0 || (config.confirmationKey >= 0x01 && config.confirmationKey <= 0xFE));
+
+	return validBhop && validRapidFire && validSensitivity && validConfirmationKey;
 }
 
 void Utils::PrintAscii(const string& asciiArt)
