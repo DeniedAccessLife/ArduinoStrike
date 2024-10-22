@@ -18,4 +18,4 @@ __      __       _   _
    CTRL + C to stop the program   
 )";
 
-string ASCII_HOTKEYS = "[F12] - OFF | [F1] - UMP | [F2] - M4A1 | [F3] - M4A4 | [F4] - AK47 | [F5] - GALIL | [F6] - FAMAS";II_H
+string ASCII_HOTKEYS = "[F12] - OFF | [F1] - UMP | [F2] - M4A1 | [F3] - M4A4 | [F4] - AK47 | [F5] - GALIL | [F6] - FAMAS";
