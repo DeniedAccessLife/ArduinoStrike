@@ -1,5 +1,4 @@
-#ifndef WEAPONS_H
-#define WEAPONS_H
+#pragma once
 
 enum Weapon
 {
@@ -93,5 +92,3 @@ inline Weapon GetWeaponState(Weapon weapon)
 
     return weapon;
 }
-
-#endif
