@@ -61,5 +61,9 @@ void loop()
           
           Mouse.move(x, y);
         }
+        else if (message == "MOUSE_LEFT_CLICK")
+        {
+            Mouse.click(MOUSE_LEFT);
+        }
     }
 }
