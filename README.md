@@ -1,5 +1,6 @@
 # ArduinoStrike
 Program for controlling recoil in the game Counter-Strike 2 using an Arduino Leonardo.
+
 Be sure to use this command in the game console: "bind mwheeldown +jump;" to use bhop functionality.
 
 # View
