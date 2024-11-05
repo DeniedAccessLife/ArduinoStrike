@@ -16,7 +16,7 @@ If you want to contribute to this project:
 - Create issues and pull requests
 - Spread the word about this project
 
-Please read `CONTRIBUTING.md` for details on our code of conduct and the process for submitting pull requests.
+Please read [CONTRIBUTING](CONTRIBUTING.md) for details on our code of conduct and the process for submitting pull requests.
 
 # License
 This project is licensed under the GNU License - see the [LICENSE](LICENSE) file for details.
