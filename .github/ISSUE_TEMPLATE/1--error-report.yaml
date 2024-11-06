@@ -1,0 +1,46 @@
+name: Problem/Error Report
+description: I encountered a problem and need help to solve it
+labels: ["help wanted"]
+body:
+  - type: checkboxes
+    attributes:
+      label: Is there an existing issue for this?
+      description: Please search to see if an issue already exists for the problem you encountered.
+      options:
+        - label: I have searched the existing issues
+          required: true
+  - type: input
+    id: description
+    attributes:
+      label: Describe your problem
+      description: A brief and clear description of the problem.
+      placeholder: Whenever I do X, it throws an error...
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      description: Explain how to reproduce the issue
+      placeholder: |
+        1. Go to ...
+        2. Click on ....
+        3. See error
+    validations:
+      required: true
+  - type: input
+    id: environment
+    attributes:
+      label: Hardware details
+      description: Describe the hardware (e.g., DIY-built or specific model).
+      placeholder: DIY-built (ESP32-S2 Mini, Arduino Leonardo)
+    validations:
+      required: true
+  - type: textarea
+    id: context
+    attributes:
+      label: Additional context
+      description: Add any other information, links, or screenshots.
+      placeholder: I think this might be caused by ...
+    validations:
+      required: false
