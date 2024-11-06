@@ -33,7 +33,7 @@ body:
     attributes:
       label: Hardware details
       description: Describe the hardware (e.g., DIY-built or specific model).
-      placeholder: ESP32-S2 Mini, Arduino Leonardo, ...
+      placeholder: DIY-built (ESP32-S2 Mini, Arduino Leonardo), Digispark
     validations:
       required: true
   - type: textarea
