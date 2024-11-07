@@ -13,7 +13,7 @@ static void HandleWeaponFire(const Arduino& arduino, Weapon& weapon, const Confi
 
     double obs = 0.75 / config.GetZoomSensitivity();
     double modifier = 2.52 / config.GetSensitivity();
-    modifier = IsKeyHolded(VK_RBUTTON) ? modifier *= obs : modifier;
+    modifier = IsKeyHolded(VK_RBUTTON) ? modifier = obs : modifier;
 
     WeaponData data = GetWeaponData(weapon, modifier);
 
