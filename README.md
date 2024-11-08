@@ -18,19 +18,30 @@ The ArduinoStrike software **does not require a USB Host Shield**. Arduino conne
 
 ### Installation
 1. **Clone the Repository**  
-   ```bash
-   git clone https://github.com/DeniedAccessLife/ArduinoStrike.git
-   cd ArduinoStrike
-   ```
+```bash
+git clone https://github.com/DeniedAccessLife/ArduinoStrike.git
+cd ArduinoStrike
+```
 
 2. **Open the Project in Arduino IDE**  
 Open the `ArduinoStrike.ino` file located in the `ArduinoSketch` folder in the repository.
 
-3. **Connect and Configure Arduino Leonardo**  
+3. **Connect and Configure Arduino**  
 Connect Arduino board to your computer. In the Arduino IDE, select the appropriate **Board** (`Arduino Leonardo`) and **Port**.
 
 4. **Upload the Firmware**  
 Click the **Upload** button in the Arduino IDE to flash the `ArduinoStrike` firmware to your board. Once uploaded, your Arduino will function as an HID device, controlling mouse movements according to the code logic.
+
+# Configuration
+Upon launching `ArduinoStrike.exe`, you will be prompted to enter values for various settings:
+
+- **Bhop**: Enter `1` to enable bunny hop or `0` to disable.
+- **Rapid Fire**: Enter `1` to enable rapid fire or `0` to disable.
+- **Sensitivity**: Enter an integer between `1` and `8` for general sensitivity.
+- **Zoom Sensitivity**: Enter a decimal value between `0.01` and `3.00` for zoom sensitivity.
+- **Confirmation Key**: Enter the virtual key code (`VK_CODE`) for the recoil control confirmation key, or `0` to disable this feature.
+- **ColorBot Activation Key**: Enter the virtual key code (`VK_CODE`) for the ColorBot activation key, or `0` to disable ColorBot activation.
+- **ColorBot Threshold**: Enter a value between `0` and `20` to set the allowable color deviation for ColorBot activation.
 
 # View
 Window of the program.
