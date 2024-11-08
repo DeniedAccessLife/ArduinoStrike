@@ -33,7 +33,7 @@ Connect Arduino board to your computer. In the Arduino IDE, select the appropria
 Click the **Upload** button in the Arduino IDE to flash the `ArduinoStrike` firmware to your board. Once uploaded, your Arduino will function as an HID device, controlling mouse movements according to the code logic.
 
 # Configuration
-Upon launching `ArduinoStrike.exe`, you will be prompted to enter values for various settings:
+After the first launch `ArduinoStrike.exe`, you will be prompted to enter values for various settings:
 
 - **Bhop**: Enter `1` to enable bunny hop or `0` to disable.
 - **Rapid Fire**: Enter `1` to enable rapid fire or `0` to disable.
