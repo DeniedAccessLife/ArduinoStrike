@@ -51,7 +51,7 @@ If the `Settings.cfg` file is not found when launching the program, you will be 
 
 | Setting               | Description                                                      | Value Type                 | Range/Options                    |
 |-----------------------|------------------------------------------------------------------|----------------------------|----------------------------------|
-| **Bhop**              | Enables or disables the bunny hop functionality.                 | Integer                    | `1` (enable) / `0` (disable)     |
+| **Bhop**              | Enables or disables the bunny hop.                 | Integer                    | `1` (enable) / `0` (disable)     |
 | **Rapid Fire**        | Enables or disables rapid fire.                                  | Integer                    | `1` (enable) / `0` (disable)     |
 | **Sensitivity**       | Sets game sensitivity level.                                     | Integer                    | `1` to `8`                       |
 | **Zoom Sensitivity**  | Adjusts sensitivity when zoomed in.                              | Decimal                    | `0.01` to `3.00`                 |
