@@ -17,9 +17,9 @@ ArduinoStrike is a program designed to control the recoil of weapons in **Counte
 |---------------------------|--------------------------------------------------------------------------------------------------|
 | **Recoil Control**        | Reduces gun recoil by simulating controlled downward mouse movements for more accurate shots. |
 | **Rapid Fire**            | Enhances the firing rate of semi-automatic weapons for faster shooting.                          |
-| **Bunny Hop (Bhop)**      | Automatically performs jumps by holding down the space bar, enabling fluid movement in-game.     |
-| **ColorBot (Color TriggerBot)** | Detects specified color changes on-screen to trigger automatic shooting actions.        |
-| **FastReload**            | Speeds up the reload process for certain weapons in specific scenarios, allowing quicker return to action. |
+| **Bunny Hop (Bhop)**      | Automatically performing jumps while holding down the spacebar provides quick movement in the game.     |
+| **ColorBot (Color TriggerBot)** | Detects the color change on the screen when aiming with a rifle and fires the fastest possible shot without delay.        |
+| **FastReload**            | Speeds up the reloading process of certain weapons in certain scenarios, allowing you to continue firing faster. |
 
 ### Additional Details
 - **Note:** To enable the bhop feature, enter the command `bind mwheeldown +jump` in the game console.  
