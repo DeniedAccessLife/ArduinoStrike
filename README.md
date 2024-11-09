@@ -1,5 +1,5 @@
 # ArduinoStrike
-ArduinoStrike is a program designed to control weapon recoil in **Counter-Strike 2** using an **Arduino Leonardo** or any other compatible board. This tool simulates mouse movements to manage recoil, implements rapid fire, and adds bunny hop functionality without directly interacting with the game client, making detection more challenging.
+ArduinoStrike is a program designed to control the recoil of weapons in **Counter-Strike 2** using **Arduino Leonardo** or any other compatible board. This tool simulates mouse movements for recoil control, implements rapid fire for semi-automatic weapons and adds bunny hop functionality. The software does not interact with the game client in any way, which makes it difficult to be detected by anti-cheat.
 
 ## Table of Contents
 - [Introduction](#arduinostrike)
