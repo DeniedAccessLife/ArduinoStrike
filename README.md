@@ -23,7 +23,7 @@ ArduinoStrike is a program designed to control the recoil of weapons in **Counte
 
 ### Additional Details
 - **Note:** To enable the bhop feature, enter the command `bind mwheeldown +jump` in the game console.  
-- **Important:** ArduinoStrike **does not require a USB Host Shield**—it connects to the PC via USB and functions as an HID device.
+- **Important:** ArduinoStrike does not require a **USB Host Shield** - the board connects to a PC via USB and works as an HID device.
 
 # Getting Started
 ### Requirements
