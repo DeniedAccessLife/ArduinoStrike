@@ -85,6 +85,7 @@
     <ClCompile Include="ArduinoStrike.cpp" />
     <ClCompile Include="ColorBot.cpp" />
     <ClCompile Include="Config.cpp" />
+    <ClCompile Include="FastReload.cpp" />
     <ClCompile Include="Utils.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -92,6 +93,7 @@
     <ClInclude Include="AsciiArt.h" />
     <ClInclude Include="ColorBot.h" />
     <ClInclude Include="Config.h" />
+    <ClInclude Include="FastReload.h" />
     <ClInclude Include="Utils.h" />
     <ClInclude Include="Weapons.h" />
   </ItemGroup>

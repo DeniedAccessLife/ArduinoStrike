@@ -14,6 +14,9 @@
     <ClCompile Include="ColorBot.cpp">
       <Filter>ColorBot</Filter>
     </ClCompile>
+    <ClCompile Include="FastReload.cpp">
+      <Filter>FastReload</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Arduino">
@@ -27,6 +30,9 @@
     </Filter>
     <Filter Include="ColorBot">
       <UniqueIdentifier>{c8ba443a-ed61-4766-959d-bac41db2674f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="FastReload">
+      <UniqueIdentifier>{7c3cf5af-26d4-4ec5-afdf-f524a9f4c5bc}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -43,6 +49,9 @@
     </ClInclude>
     <ClInclude Include="ColorBot.h">
       <Filter>ColorBot</Filter>
+    </ClInclude>
+    <ClInclude Include="FastReload.h">
+      <Filter>FastReload</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

@@ -12,44 +12,45 @@ Arduino::Arduino(LPCSTR device_name) : m_arduinoHandle(INVALID_HANDLE_VALUE)
 {
     char port[100] = "\\.\\";
 
-    while (!this->GetDevice(device_name, port))
+    while (!GetDevice(device_name, port))
     {
         sleep_for(milliseconds(1000));
     }
 
-    m_arduinoHandle = CreateFile(port, GENERIC_READ | GENERIC_WRITE, 0, nullptr, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, nullptr);
-
-    if (m_arduinoHandle == INVALID_HANDLE_VALUE)
+    this->m_arduinoHandle = CreateFile(port, GENERIC_READ | GENERIC_WRITE, 0, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
+    if (this->m_arduinoHandle)
     {
-        cerr << "Error opening port: " << GetLastError() << endl;
-        return;
+        DCB dcb = { 0 };
+        dcb.DCBlength = sizeof(dcb);
+        if (!GetCommState(this->m_arduinoHandle, &dcb))
+        {
+            printf("GetCommState() failed\n");
+            CloseHandle(this->m_arduinoHandle);
+        }
+
+        dcb.BaudRate = CBR_9600;
+        dcb.ByteSize = 8;
+        dcb.StopBits = ONESTOPBIT;
+        dcb.Parity = NOPARITY;
+        if (!SetCommState(this->m_arduinoHandle, &dcb))
+        {
+            printf("SetCommState() failed\n");
+            CloseHandle(this->m_arduinoHandle);
+        }
+
+        COMMTIMEOUTS cto = { 0 };
+        cto.ReadIntervalTimeout = 50;
+        cto.ReadTotalTimeoutConstant = 50;
+        cto.ReadTotalTimeoutMultiplier = 10;
+        cto.WriteTotalTimeoutConstant = 50;
+        cto.WriteTotalTimeoutMultiplier = 10;
+        if (!SetCommTimeouts(this->m_arduinoHandle, &cto))
+        {
+            printf("SetCommTimeouts() failed\n");
+            CloseHandle(this->m_arduinoHandle);
+        }
+        cout << "Successfully connected!" << endl;
     }
-
-    DCB dcb = {};
-    dcb.DCBlength = sizeof(dcb);
-
-    if (!GetCommState(m_arduinoHandle, &dcb))
-        return;
-
-    dcb.BaudRate = CBR_9600;
-    dcb.ByteSize = 8;
-    dcb.StopBits = ONESTOPBIT;
-    dcb.Parity = NOPARITY;
-
-    if (!SetCommState(m_arduinoHandle, &dcb))
-        return;
-
-    COMMTIMEOUTS cto = {};
-    cto.ReadIntervalTimeout = 50;
-    cto.ReadTotalTimeoutConstant = 50;
-    cto.ReadTotalTimeoutMultiplier = 10;
-    cto.WriteTotalTimeoutConstant = 50;
-    cto.WriteTotalTimeoutMultiplier = 10;
-
-    if (!SetCommTimeouts(m_arduinoHandle, &cto))
-        return;
-
-    cout << "Successfully connected!" << endl;
 }
 
 bool Arduino::IsAvailable() const
@@ -68,41 +69,42 @@ bool Arduino::IsAvailable() const
 
 bool Arduino::GetDevice(LPCSTR friendly_name, LPSTR com_port)
 {
-    const char com[] = "COM";
-    HDEVINFO device_info = SetupDiGetClassDevs(&GUID_DEVCLASS_PORTS, nullptr, nullptr, DIGCF_PRESENT);
+    char com[] = "COM";
+    bool status = false;
 
-    if (device_info == INVALID_HANDLE_VALUE)
-        return false;
+    HDEVINFO device_info = SetupDiGetClassDevs(&GUID_DEVCLASS_PORTS, NULL, NULL, DIGCF_PRESENT);
+    if (device_info == INVALID_HANDLE_VALUE) return false;
 
-    SP_DEVINFO_DATA dev_info_data = {};
+    SP_DEVINFO_DATA dev_info_data;
     dev_info_data.cbSize = sizeof(dev_info_data);
 
-    DWORD device_count = 0;
+    DWORD count = 0;
 
-    while (SetupDiEnumDeviceInfo(device_info, device_count++, &dev_info_data))
+    while (SetupDiEnumDeviceInfo(device_info, count++, &dev_info_data))
     {
-        BYTE buff[256] = { 0 };
-
-        if (SetupDiGetDeviceRegistryProperty(device_info, &dev_info_data, SPDRP_FRIENDLYNAME, nullptr, buff, sizeof(buff), nullptr))
+        BYTE buffer[256];
+        if (SetupDiGetDeviceRegistryProperty(device_info, &dev_info_data, SPDRP_FRIENDLYNAME, NULL, buffer, sizeof(buffer), NULL))
         {
-            LPCSTR port_name_pos = strstr(reinterpret_cast<LPCSTR>(buff), com);
+            DWORD i = strlen(com_port);
+            LPCSTR lp_pos = strstr((LPCSTR)buffer, com);
+            DWORD len = i + (lp_pos ? strlen(lp_pos) : 0);
 
-            if (port_name_pos == nullptr)
-                continue;
-
-            if (strstr(reinterpret_cast<LPCSTR>(buff), friendly_name))
+            if (strstr((LPCSTR)buffer, friendly_name) && lp_pos)
             {
-                strncpy_s(com_port, 100, port_name_pos, strlen(port_name_pos) - 1);
-                com_port[strlen(port_name_pos) - 1] = '\0';
-                SetupDiDestroyDeviceInfoList(device_info);
+                for (DWORD j = 0; i < len; i++, j++)
+                {
+                    com_port[i] = lp_pos[j];
+                }
 
-                return true;
+                com_port[i - 1] = '\0';
+                status = true;
+                break;
             }
         }
     }
 
     SetupDiDestroyDeviceInfoList(device_info);
-    return false;
+    return status;
 }
 
 bool Arduino::WriteMessage(const string& message) const

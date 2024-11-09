@@ -32,6 +32,9 @@ void Config::Load()
         int colorBotThreshold = GetValidatedIntInput("Enter colorbot color deviation (0-20) -> ", 0, 20);
         SetColorBotThreshold(colorBotThreshold);
 
+        int fastReload = GetValidatedIntInput("Enter fast reload boolean value (1/0) -> ", 0, 1);
+        SetFastReload(fastReload);
+
         Save();
         cout << "Configuration successfully saved!" << endl;
     }
@@ -44,6 +47,7 @@ void Config::Load()
         file >> hex >> confirmationKey;
         file >> hex >> colorBotKey;
         file >> dec >> colorBotThreshold;
+        file >> dec >> fastReload;
         file.close();
 
         if (!Validate())
@@ -66,13 +70,14 @@ void Config::Save() const
     out << dec << zoomSensitivity << endl;
     out << hex << confirmationKey << endl;
     out << hex << colorBotKey << endl;
-    out << dec << colorBotThreshold;
+    out << dec << colorBotThreshold << endl;
+    out << dec << fastReload << endl;
     out.close();
 }
 
 bool Config::Validate() const
 {
-    return (bhop == 0 || bhop == 1) && (rapidFire == 0 || rapidFire == 1) && (sensitivity >= 1 && sensitivity <= 8) && (confirmationKey == 0 || (confirmationKey >= 0x01 && confirmationKey <= 0xFE)) && (colorBotKey == 0 || (colorBotKey >= 0x01 && colorBotKey <= 0xFE)) && (colorBotThreshold >= 0 && colorBotThreshold <= 20) && (zoomSensitivity >= 0.01 && zoomSensitivity <= 3.00);
+    return (bhop == 0 || bhop == 1) && (rapidFire == 0 || rapidFire == 1) && (sensitivity >= 1 && sensitivity <= 8) && (confirmationKey == 0 || (confirmationKey >= 0x01 && confirmationKey <= 0xFE)) && (colorBotKey == 0 || (colorBotKey >= 0x01 && colorBotKey <= 0xFE)) && (colorBotThreshold >= 0 && colorBotThreshold <= 20) && (zoomSensitivity >= 0.01 && zoomSensitivity <= 3.00) && (fastReload == 0 || fastReload == 1);
 }
 
 int Config::GetBhop() const
@@ -143,6 +148,16 @@ int Config::GetColorBotThreshold() const
 void Config::SetColorBotThreshold(int value)
 {
     colorBotThreshold = value;
+}
+
+int Config::GetFastReload() const
+{
+    return fastReload;
+}
+
+void Config::SetFastReload(int value)
+{
+    fastReload = value;
 }
 
 int Config::GetValidatedKeyInput(const string& prompt)

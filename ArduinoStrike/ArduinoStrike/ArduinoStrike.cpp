@@ -4,10 +4,11 @@
 #include "Weapons.h"
 #include "AsciiArt.h"
 #include "ColorBot.h"
+#include "FastReload.h"
 
 Weapon weapon = OFF;
 
-static void HandleWeaponFire(const Arduino& arduino, Weapon& weapon, const Config& config)
+static void HandleWeaponFire(const Arduino& arduino, Weapon& weapon, const Config& config, const FastReload& fastReload)
 {
     if (weapon == OFF) return;
 
@@ -19,7 +20,6 @@ static void HandleWeaponFire(const Arduino& arduino, Weapon& weapon, const Confi
 
     if (!(data.x.size() == data.y.size() && data.x.size() == data.delay.size()))
     {
-        //cerr << "Warning: Mismatch in the number of elements across x, y, and delay vectors. All three vectors must have the same number of elements." << endl;
         weapon = OFF;
         return;
     }
@@ -28,11 +28,18 @@ static void HandleWeaponFire(const Arduino& arduino, Weapon& weapon, const Confi
     {
         if (!IsKeyHolded(VK_LBUTTON) || (config.GetConfirmationKey() != 0 && !IsKeyHolded(config.GetConfirmationKey())))
         {
-            break;
+            return;
         }
 
         arduino.WriteMessage("MOUSE_LEFT_HOLDED:" + to_string(data.x[i]) + "," + to_string(data.y[i]) + "," + to_string(data.delay[i]));
         sleep_for(milliseconds(data.delay[i]));
+    }
+
+    arduino.WriteMessage("MOUSE_LEFT_CLICK");
+
+    if (config.GetFastReload() != 0)
+    {
+        fastReload.Process(arduino, weapon);
     }
 }
 
@@ -63,6 +70,7 @@ int main()
     Arduino arduino("Arduino Leonardo");
     utils.PrintAscii(ASCII_OUTRO), utils.PrintHotkeys(ASCII_HOTKEYS);
 
+    FastReload fastReload;
     ColorBot colorBot(config.GetColorBotThreshold(), config.GetColorBotKey());
 
     while (true)
@@ -72,7 +80,7 @@ int main()
 
         if (message.rfind("ARDUINO_INITIATED", 0) != 0)
         {
-            HandleWeaponFire(arduino, weapon, config);
+            HandleWeaponFire(arduino, weapon, config, fastReload);
             ProcessKeyEvents(arduino, config, colorBot);
         }
     }

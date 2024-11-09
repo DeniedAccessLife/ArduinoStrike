@@ -39,6 +39,9 @@ public:
     int GetColorBotThreshold() const;
     void SetColorBotThreshold(int value);
 
+    int GetFastReload() const;
+    void SetFastReload(int value);
+
 private:
     int bhop;
     int rapidFire;
@@ -48,6 +51,7 @@ private:
 
     int colorBotKey;
     int colorBotThreshold;
+    int fastReload;
 
     int GetValidatedKeyInput(const string& prompt);
     int GetValidatedIntInput(const string& prompt, int min, int max);
