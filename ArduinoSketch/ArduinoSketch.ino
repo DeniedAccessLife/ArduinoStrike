@@ -31,7 +31,7 @@ void loop()
     {
         String message = Serial.readStringUntil('\0');
 
-        if (message == "MOUSE_MIDDLE_HOLDED" && isTimerElapsed(timer1, 100))
+        if (message == "MOUSE_MIDDLE_HOLDED" && isTimerElapsed(timer1, 300))
         {
             Serial.println("ARDUINO_INITIATED\n");
             Mouse.click(MOUSE_LEFT);
@@ -66,6 +66,13 @@ void loop()
         else if (message == "MOUSE_LEFT_CLICK")
         {
             Mouse.click(MOUSE_LEFT);
+        }
+        else if (message == "KEYBOARD_PRESS_Q")
+        {
+            delay(10);
+            Keyboard.write('q');
+            delay(25);
+            Keyboard.write('q');
         }
     }
 }
