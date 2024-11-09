@@ -55,7 +55,7 @@ If the `Settings.cfg` file is not found when launching the program, you will be 
 | **Rapid Fire**        | Enables or disables rapid fire.                                  | Integer                    | `1` (enable) / `0` (disable)     |
 | **Sensitivity**       | Sets game sensitivity level.                                     | Integer                    | `1` to `8`                       |
 | **Zoom Sensitivity**  | Adjusts sensitivity when zoomed in.                              | Decimal                    | `0.01` to `3.00`                 |
-| **Confirmation Key**  | Assigns a virtual key code for confirmation or disables it.      | Integer                    | VK_CODE (enable) / `0` (disable) |
+| **Recoil confirmation Key**  | Assigns a virtual key code to confirm recoil control or disables it.      | Integer                    | VK_CODE (enable) / `0` (disable) |
 | **ColorBot Activation Key** | Sets a virtual key code to activate ColorBot or disables it. | Integer                  | VK_CODE (enable) / `0` (disable) |
 | **ColorBot Threshold** | Sets the allowed color deviation threshold for ColorBot.       | Integer                     | `0` to `20`                      |
 | **FastReload**        | Enables or disables fast reloading.                             | Integer                     | `1` (enable) / `0` (disable)     |
