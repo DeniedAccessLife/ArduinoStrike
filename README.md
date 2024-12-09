@@ -30,21 +30,57 @@ ArduinoStrike is a program designed to control the recoil of weapons in **Counte
 - **Hardware**: Arduino Leonardo (or compatible board with native USB HID support)
 - **Software**: Arduino IDE, Counter-Strike 2
 
-### Installation
+### Installation  
+
+#### Option 1: Using PlatformIO (Recommended)  
+
 1. **Clone the Repository**  
-```bash
-git clone https://github.com/DeniedAccessLife/ArduinoStrike.git
-cd ArduinoStrike
-```
+   ```bash  
+   git clone https://github.com/DeniedAccessLife/ArduinoStrike.git  
+   cd ArduinoStrike  
+   ```  
 
-2. **Open the Project in Arduino IDE**  
-Open the `ArduinoStrike.ino` file located in the `ArduinoSketch` folder in the repository.
+2. **Upload the Firmware**  
+   - Navigate to the `PlatformIO` folder:
 
-3. **Connect and Configure Arduino**  
-Connect Arduino board to your computer. In the Arduino IDE, select the appropriate **Board** (`Arduino Leonardo`) and **Port**.
+     ```bash  
+     cd PlatformIO  
+     ```  
+   - Run the `upload.bat` script for Windows.  
+   - The script will automatically compile and upload the firmware to your connected Arduino board.  
+   - Ensure the correct board and port are specified in the `platformio.ini` file.  
 
-4. **Upload the Firmware**  
-Click the **Upload** button in the Arduino IDE to flash the `ArduinoStrike` firmware to your board. Once uploaded, your Arduino will function as an HID device, controlling mouse movements according to the code logic.
+3. **Adding Support for Custom HID-Compatible Boards**  
+   - If you plan to use a custom board with HID emulation, update the `platformio.ini` file located in the `PlatformIO` folder with the appropriate configurations for your board.  
+   - Modify the `upload.bat` script in the same folder to support additional options.  
+
+---
+
+#### Option 2: Using Arduino IDE  
+
+1. **Clone the Repository**  
+   ```bash  
+   git clone https://github.com/DeniedAccessLife/ArduinoStrike.git  
+   cd ArduinoStrike  
+   ```  
+
+2. **Locate the Sketch File**  
+   - The sketch file is located in the `PlatformIO/src` folder as `ArduinoStrike.cpp`.  
+
+3. **Convert the Sketch for Arduino IDE**  
+   - Rename `ArduinoStrike.cpp` to `ArduinoStrike.ino`.  
+   - Create a new folder named `ArduinoStrike` in the `Arduino` projects directory on your system.  
+   - Move the renamed file into the newly created `ArduinoStrike` folder.  
+
+4. **Open the Project in Arduino IDE**  
+   - Launch the Arduino IDE and open the newly created `ArduinoStrike.ino` file.  
+
+5. **Connect and Configure Arduino**  
+   - Connect your Arduino board to your computer.  
+   - In the Arduino IDE, select the appropriate **Board** (e.g., `Arduino Leonardo`) and **Port**.  
+
+6. **Upload the Firmware**  
+   - Click the **Upload** button to flash the firmware onto your board.  
 
 # Configuration
 If the `Settings.cfg` file is not found when launching the program, you will be prompted to enter the following settings into the console:
