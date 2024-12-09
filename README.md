@@ -28,7 +28,7 @@ ArduinoStrike is a program designed to control the recoil of weapons in **Counte
 # Getting Started
 ### Requirements
 - **Hardware**: Arduino Leonardo (or compatible board with native USB HID support)
-- **Software**: Arduino IDE, Counter-Strike 2
+- **Software**: Arduino IDE or PlatformIO, Counter-Strike 2
 
 ### Installation  
 
