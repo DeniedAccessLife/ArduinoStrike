@@ -76,12 +76,10 @@ int main()
     while (true)
     {
         weapon = GetWeaponState(weapon);
-        string message = arduino.ReceiveMessage('\n');
 
-        if (message.rfind("ARDUINO_INITIATED", 0) != 0)
-        {
-            HandleWeaponFire(arduino, weapon, config, fastReload);
-            ProcessKeyEvents(arduino, config, colorBot);
-        }
+        HandleWeaponFire(arduino, weapon, config, fastReload);
+        ProcessKeyEvents(arduino, config, colorBot);
+
+        sleep_for(milliseconds(10));
     }
 }
