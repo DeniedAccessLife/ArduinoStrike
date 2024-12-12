@@ -58,34 +58,26 @@ void Utils::PrintAscii(const string& ascii)
 {
 	ConsoleClear();
 
-	vector<string> lines;
+	string line;
 	istringstream iss(ascii);
-
-	for (string line; getline(iss, line);)
-	{
-		lines.push_back(line);
-	}
 
 	CONSOLE_SCREEN_BUFFER_INFO csbi;
 	GetConsoleScreenBufferInfo(GetStdHandle(STD_OUTPUT_HANDLE), &csbi);
 	int width = csbi.srWindow.Right - csbi.srWindow.Left + 1;
 	int height = csbi.srWindow.Bottom - csbi.srWindow.Top + 1;
 
-	SHORT startY = static_cast<SHORT>(height - lines.size()) / 2;
+	SHORT startY = static_cast<SHORT>(height - count(ascii.begin(), ascii.end(), '\n') - 1) / 2;
 
-	for (SHORT i = 0; i < static_cast<SHORT>(lines.size()); i++)
+	while (getline(iss, line))
 	{
-		const string &line = lines[i];
-
 		SHORT padding = static_cast<SHORT>(width - line.size()) / 2;
 
-		COORD coord = {};
-		coord.X = padding;
-		coord.Y = startY + i;
+		COORD coord = { padding, startY++ };
 		SetConsoleCursorPosition(GetStdHandle(STD_OUTPUT_HANDLE), coord);
-
 		cout << line;
 	}
+
+	cout << endl << endl;
 }
 
 void Utils::PrintHotkeys(const string& keys)
@@ -95,18 +87,35 @@ void Utils::PrintHotkeys(const string& keys)
 	int width = csbi.srWindow.Right - csbi.srWindow.Left + 1;
 	int padding = (width - keys.size()) / 2;
 
-	COORD coord = {};
-	coord.X = 0;
-	coord.Y = csbi.srWindow.Bottom;
+	COORD coord = { 0, csbi.srWindow.Bottom };
 	SetConsoleCursorPosition(GetStdHandle(STD_OUTPUT_HANDLE), coord);
 
-	for (int i = 0; i < padding; i++)
-	{
-		cout << " ";
-	}
-
-	cout << keys;
+	cout << string(padding, ' ') << keys;
 }
+
+void Utils::PrintCenteredText(const string& text, bool wrap)
+{
+	CONSOLE_SCREEN_BUFFER_INFO csbi;
+	HANDLE console = GetStdHandle(STD_OUTPUT_HANDLE);
+	GetConsoleScreenBufferInfo(console, &csbi);
+
+	int width = csbi.srWindow.Right - csbi.srWindow.Left + 1;
+	SHORT padding = static_cast<SHORT>((width - text.size()) / 2);
+
+	COORD coord = { padding, csbi.dwCursorPosition.Y };
+	SetConsoleCursorPosition(console, coord);
+	cout << text;
+
+	if (wrap)
+{
+		cout << endl;
+	}
+	else
+	{
+		SetConsoleCursorPosition(console, { static_cast<SHORT>(padding + text.size()), coord.Y } );
+	}
+}
+
 
 void Utils::ConsoleClear()
 {
@@ -114,7 +123,7 @@ void Utils::ConsoleClear()
 	HANDLE console = GetStdHandle(STD_OUTPUT_HANDLE);
 
 	DWORD written;
-	CONSOLE_CURSOR_INFO cursorInfo;
+	CONSOLE_CURSOR_INFO cursor;
 	CONSOLE_SCREEN_BUFFER_INFO screen;
 
 	GetConsoleScreenBufferInfo(console, &screen);
@@ -122,9 +131,9 @@ void Utils::ConsoleClear()
 	FillConsoleOutputAttribute(console, FOREGROUND_GREEN | FOREGROUND_RED | FOREGROUND_BLUE, screen.dwSize.X * screen.dwSize.Y, topLeft, &written);
 	SetConsoleCursorPosition(console, topLeft);
 
-	GetConsoleCursorInfo(console, &cursorInfo);
-	cursorInfo.bVisible = false;
-	SetConsoleCursorInfo(console, &cursorInfo);
+	GetConsoleCursorInfo(console, &cursor);
+	cursor.bVisible = false;
+	SetConsoleCursorInfo(console, &cursor);
 }
 
 void Utils::SetConsoleMode(const string& title)
@@ -133,11 +142,11 @@ void Utils::SetConsoleMode(const string& title)
 	CONSOLE_SCREEN_BUFFER_INFO buffer;
 	GetConsoleScreenBufferInfo(console, &buffer);
 
-	COORD size = {};
-	size.X = buffer.srWindow.Right - buffer.srWindow.Left + 1;
-	size.Y = buffer.srWindow.Bottom - buffer.srWindow.Top + 1;
+	COORD coord = {};
+	coord.X = buffer.srWindow.Right - buffer.srWindow.Left + 1;
+	coord.Y = buffer.srWindow.Bottom - buffer.srWindow.Top + 1;
 
-	SetConsoleScreenBufferSize(console, size);
+	SetConsoleScreenBufferSize(console, coord);
 	ShowWindow(GetConsoleWindow(), SW_MAXIMIZE);
 	SetConsoleTitleA(title.c_str());
 }

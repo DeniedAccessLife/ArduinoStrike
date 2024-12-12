@@ -15,6 +15,7 @@ public:
     Utils();
     void PrintAscii(const string& ascii);
     void PrintHotkeys(const string& keys);
+    void PrintCenteredText(const string& text, bool wrap = true);
 
 private:
     void Install();

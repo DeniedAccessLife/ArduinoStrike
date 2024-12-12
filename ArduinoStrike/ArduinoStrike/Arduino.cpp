@@ -1,4 +1,5 @@
 #include "Arduino.h"
+#include "Utils.h"
 
 Arduino::~Arduino()
 {
@@ -71,115 +72,204 @@ Arduino::Arduino(LPCSTR name) : handle(INVALID_HANDLE_VALUE)
     cout << "Successfully connected!" << endl;
 }
 
-bool Arduino::IsAvailable() const
-{
-    DWORD errors;
-    COMSTAT status;
-
-    if (!ClearCommError(handle, &errors, &status))
-    {
-        LOG("Error checking available data: " + to_string(GetLastError()));
-        return false;
-    }
-
-    return status.cbInQue > 0;
-}
-
 bool Arduino::GetDevice(LPCSTR name, LPSTR port)
 {
-    bool status = false;
     HDEVINFO device_info = SetupDiGetClassDevs(&GUID_DEVCLASS_PORTS, NULL, NULL, DIGCF_PRESENT);
 
     if (device_info == INVALID_HANDLE_VALUE)
     {
-        LOG("Failed to get device information.");
+        LOG("Failed to get device information (SetupDiGetClassDevs returned INVALID_HANDLE_VALUE).");
         return false;
     }
 
+    vector<DeviceInfo> devices;
+    vector<regex> patterns =
+    {
+        regex("VID_2341&PID_.*"),
+        regex("VID_2A03&PID_.*"),
+        regex("VID_1A86&PID_.*")
+    };
+
+    // Load configuration
+    DeviceInfo config_device;
+    bool found_device = false;
+    bool config_loaded = Arduino::LoadConfiguration("device_config.cfg", config_device);
+
+    // Collect system devices
+    LOG("Enumerating connected devices...");
     DWORD count = 0;
     SP_DEVINFO_DATA dev_info_data = {};
     dev_info_data.cbSize = sizeof(dev_info_data);
-    LOG("Searching for device: " + string(name));
 
-    struct DeviceInfo
-    {
-        string port;
-        string hardware_id;
-        string friendly_name;
-    };
-
-    vector<DeviceInfo> devices;
-    vector<regex> patterns = { regex("VID_2341&PID_.*"), regex("VID_1A86&PID_.*"), regex("VID_10C4&PID_.*") };
-
-    // Step 1: Collecting all devices
     while (SetupDiEnumDeviceInfo(device_info, count++, &dev_info_data))
     {
-        DeviceInfo info;
-        BYTE buffer[256];
+        DeviceInfo system_device;
 
-        // Reading FRIENDLYNAME
-        if (SetupDiGetDeviceRegistryProperty(device_info, &dev_info_data, SPDRP_FRIENDLYNAME, NULL, buffer, sizeof(buffer), NULL))
+        if (Arduino::ExtractProperties(device_info, dev_info_data, system_device))
         {
-            info.friendly_name = string((LPCSTR)buffer);
-            LOG("Device detected with FRIENDLYNAME: " + info.friendly_name);
+            devices.push_back(system_device);
+            LOG("Detected device: FRIENDLYNAME = " + system_device.friendly_name + ", HARDWAREID = " + system_device.hardware_id + ", PORT = " + system_device.port);
 
-            // Reading PORT
-            LPCSTR start = strchr((LPCSTR)buffer, '(');
-            LPCSTR end = strchr((LPCSTR)buffer, ')');
-
-            if (start && end && end > start)
+            // Check against configuration file
+            if (config_loaded && system_device.friendly_name == config_device.friendly_name && system_device.hardware_id == config_device.hardware_id)
             {
-                info.port = string(start + 1, end - start - 1);
+                strncpy_s(port, 100, system_device.port.c_str(), system_device.port.size());
+                LOG("Using saved device: FRIENDLYNAME = " + system_device.friendly_name + ", HARDWAREID = " + system_device.hardware_id + ", PORT = " + system_device.port);
+                found_device = true;
+                break;
+            }
+
+            // Check against VID/PID patterns or name
+            if (!found_device && name && system_device.friendly_name.find(name) != string::npos)
+            {
+                strncpy_s(port, 100, system_device.port.c_str(), system_device.port.size());
+                LOG("Device matched by FRIENDLYNAME: " + system_device.friendly_name);
+                found_device = true;
+                break;
+            }
+
+            for (const auto& pattern : patterns)
+            {
+                if (regex_search(system_device.hardware_id, pattern))
+                {
+                    strncpy_s(port, 100, system_device.port.c_str(), system_device.port.size());
+                    LOG("Device matched by VID/PID: " + system_device.hardware_id);
+                    found_device = true;
+                    break;
+                }
             }
         }
 
-        // Reading HARDWAREID
-        if (SetupDiGetDeviceRegistryProperty(device_info, &dev_info_data, SPDRP_HARDWAREID, NULL, buffer, sizeof(buffer), NULL))
-        {
-            info.hardware_id = string((LPCSTR)buffer);
-            LOG("Device detected with HARDWAREID: " + info.hardware_id);
-        }
-
-        devices.push_back(info);
+        if (found_device)
+            break;
     }
 
     SetupDiDestroyDeviceInfoList(device_info);
 
-    // Step 2: Checking and selecting the device
-    for (const auto& device : devices)
+    // Handle case where no device was found
+    if (!found_device)
     {
-        LOG("Evaluating device: FRIENDLYNAME = " + device.friendly_name + ", HARDWAREID = " + device.hardware_id);
-
-        // If the name is specified, check it
-        if (name && !device.friendly_name.empty() && device.friendly_name.find(name) != string::npos)
+        if (config_loaded)
         {
-            strncpy_s(port, 100, device.port.c_str(), device.port.size());
-            LOG("Device matched by FRIENDLYNAME: " + device.friendly_name);
-            status = true;
-            break;
+            LOG("Saved device not found in the system. Deleting configuration file.");
+            remove("device_config.cfg");
         }
 
-        // If the name does not match, check the VID/PID
-        for (const auto& pattern : patterns)
+        if (devices.empty())
         {
-            if (!device.hardware_id.empty() && regex_search(device.hardware_id, pattern))
-            {
-                strncpy_s(port, 100, device.port.c_str(), device.port.size());
-                LOG("Device matched by VID/PID: " + device.hardware_id);
-                status = true;
-                break;
-            }
+            LOG("No devices found in the system.");
+            return false;
         }
 
-        if (status) break;
+        LOG("Prompting user to select a device...");
+        return Arduino::SelectDevice(devices, port);
     }
 
-    if (!status)
+    return true;
+}
+
+bool Arduino::LoadConfiguration(const string& file_name, DeviceInfo& config_device)
+{
+    string line;
+    ifstream config(file_name);
+
+    if (!config)
     {
-        LOG("No matching device found.");
+        LOG("Configuration file not found.");
+        return false;
     }
 
-    return status;
+    while (getline(config, line))
+    {
+        if (line.find("FRIENDLYNAME=") == 0)
+        {
+            config_device.friendly_name = line.substr(13);
+        }
+        else if (line.find("HARDWAREID=") == 0)
+        {
+            config_device.hardware_id = line.substr(11);
+        }
+        else if (line.find("PORT=") == 0)
+        {
+            config_device.port = line.substr(5);
+        }
+    }
+
+    if (!config_device.friendly_name.empty() && !config_device.hardware_id.empty())
+    {
+        LOG("Loaded device from configuration: FRIENDLYNAME = " + config_device.friendly_name + ", HARDWAREID = " + config_device.hardware_id + ", PORT = " + config_device.port);
+        return true;
+    }
+
+    LOG("Configuration file is incomplete or corrupted.");
+    return false;
+}
+
+bool Arduino::ExtractProperties(HDEVINFO device_info, SP_DEVINFO_DATA& dev_info_data, DeviceInfo& device)
+{
+    BYTE buffer[256];
+
+    if (SetupDiGetDeviceRegistryProperty(device_info, &dev_info_data, SPDRP_FRIENDLYNAME, NULL, buffer, sizeof(buffer), NULL))
+    {
+        device.friendly_name = string((LPCSTR)buffer);
+
+        LPCSTR start = strchr((LPCSTR)buffer, '(');
+        LPCSTR end = strchr((LPCSTR)buffer, ')');
+
+        if (start && end && end > start)
+        {
+            device.port = string(start + 1, end - start - 1);
+        }
+    }
+
+    if (SetupDiGetDeviceRegistryProperty(device_info, &dev_info_data, SPDRP_HARDWAREID, NULL, buffer, sizeof(buffer), NULL))
+    {
+        device.hardware_id = string((LPCSTR)buffer);
+    }
+
+    return !device.friendly_name.empty() && !device.hardware_id.empty();
+}
+
+bool Arduino::SelectDevice(const vector<DeviceInfo>& devices, LPSTR port)
+{
+    Utils utils;
+    utils.PrintCenteredText("The following devices were detected:");
+
+    for (size_t i = 0; i < devices.size(); ++i)
+    {
+        string device_info = "[" + to_string(i + 1) + "] FRIENDLYNAME: " + devices[i].friendly_name + ", HARDWAREID: " + devices[i].hardware_id + ", PORT: " + devices[i].port;
+        utils.PrintCenteredText(device_info);
+    }
+
+    utils.PrintCenteredText("Please select the device you want to use by entering its number (0 to cancel): ", false);
+
+    int choice;
+    cin >> choice;
+
+    if (choice > 0 && choice <= static_cast<int>(devices.size()))
+    {
+        const auto& selected_device = devices[choice - 1];
+        strncpy_s(port, 100, selected_device.port.c_str(), selected_device.port.size());
+        LOG("User selected device: " + selected_device.friendly_name);
+
+        ofstream config("device_config.cfg");
+
+        if (config)
+        {
+            config << "FRIENDLYNAME=" << selected_device.friendly_name << endl;
+            config << "HARDWAREID=" << selected_device.hardware_id << endl;
+            config << "PORT=" << selected_device.port << endl;
+
+            LOG("Device selection saved to configuration.");
+        }
+
+        return true;
+    }
+
+    utils.PrintCenteredText("No device selected by the user.");
+    LOG("No device selected by the user.");
+
+    return false;
 }
 
 bool Arduino::WriteMessage(const string& message) const

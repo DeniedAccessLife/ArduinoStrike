@@ -19,6 +19,13 @@ using namespace std;
 using namespace chrono;
 using namespace this_thread;
 
+struct DeviceInfo
+{
+    string port;
+    string hardware_id;
+    string friendly_name;
+};
+
 class Arduino
 {
 public:
@@ -28,7 +35,9 @@ public:
 
 private:
     HANDLE handle;
-    bool IsAvailable() const;
     bool GetDevice(LPCSTR name, LPSTR port);
+    bool LoadConfiguration(const string& file_name, DeviceInfo& config_device);
+    bool ExtractProperties(HDEVINFO device_info, SP_DEVINFO_DATA& dev_info_data, DeviceInfo& device);
+    bool SelectDevice(const vector<DeviceInfo>& devices, LPSTR port);
     static void LogMessage(const string& message);
 };
