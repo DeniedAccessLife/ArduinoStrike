@@ -4,7 +4,7 @@
 enum Weapon
 {
     OFF,
-    UMP，
+    UMP,
     M4A1,
     M4A4,
     AK47,
