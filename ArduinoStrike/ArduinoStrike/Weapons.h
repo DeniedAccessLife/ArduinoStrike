@@ -1,6 +1,8 @@
 #pragma once
 #include <vector>
 
+//hi i think we should let user to change the keybind
+
 enum Weapon
 {
     OFF,
