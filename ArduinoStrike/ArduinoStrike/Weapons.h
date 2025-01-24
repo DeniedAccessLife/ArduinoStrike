@@ -1,7 +1,8 @@
 #pragma once
 #include <vector>
 
-//hi i think we should let user to change the keybind
+//Hi, yes, that's right. I'm currently working on updating the modularity of the code, due to the large number of weapons, I think this is a good point.
+//I also released a new pre-release, you can check the functionality with new patterns.
 
 enum Weapon
 {
