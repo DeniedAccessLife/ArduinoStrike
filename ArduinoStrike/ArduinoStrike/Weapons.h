@@ -1,8 +1,14 @@
 #pragma once
+
 #include <vector>
+#include <windows.h>
+#include "Config.h" // Include the Config header to access custom keys
 
-//I think we can handle the configuration file in a separate file and pass the hotkeys to weapon.h as parameters.
+using namespace std;
 
+/**
+ * @brief Enumeration of available weapons.
+ */
 enum Weapon
 {
     OFF,
@@ -24,23 +30,41 @@ enum Weapon
     P90
 };
 
+/**
+ * @brief A structure containing recoil data for a particular weapon.
+ *        This is just an example data structure; you can fill it with
+ *        real or placeholder values as needed.
+ */
 struct WeaponData
 {
-    vector<double> x;
-    vector<double> y;
-    vector<int> delay;
+    vector<double> x;     // Recoil offsets in the x-direction
+    vector<double> y;     // Recoil offsets in the y-direction
+    vector<int>    delay; // Delay (in ms) between shots
 };
 
+/**
+ * @brief Checks if a key was pressed once since the last call.
+ *        Uses GetAsyncKeyState with & 1.
+ */
 static bool IsKeyPressed(int key)
 {
     return (GetAsyncKeyState(key) & 1) != 0;
 }
 
+/**
+ * @brief Checks if a key is currently held down.
+ *        Uses GetAsyncKeyState with & 0x8000.
+ */
 inline bool IsKeyHolded(int key)
 {
     return (GetAsyncKeyState(key) & 0x8000) != 0;
 }
 
+/**
+ * @brief Returns the recoil data for a specified weapon,
+ *        optionally using a modifier. This function is just
+ *        a placeholder. You can fill in your actual recoil data.
+ */
 inline WeaponData GetWeaponData(Weapon weapon, double modifier)
 {
     switch (weapon)
@@ -162,27 +186,85 @@ inline WeaponData GetWeaponData(Weapon weapon, double modifier)
     }
 }
 
-inline Weapon GetWeaponState(Weapon weapon)
+/**
+ * @brief Returns the new weapon state based on whether the user
+ *        pressed any of the custom hotkeys defined in the config.
+ *
+ * @param currentWeapon The current weapon state.
+ * @param config        Reference to the Config object, which stores custom hotkeys.
+ *
+ * @return The new weapon if a custom hotkey was pressed, otherwise returns the currentWeapon.
+ */
+inline Weapon GetWeaponState(Weapon currentWeapon, const Config& config)
 {
-    if (IsKeyPressed(VK_F12) & 1) return OFF;
+    // Check if OFF key is pressed
+    if (config.GetKeyOff() != 0 && IsKeyPressed(config.GetKeyOff()))
+        return OFF;
 
-    if (IsKeyPressed(VK_F1) & 1) return UMP;
-    if (IsKeyPressed(VK_F2) & 1) return M4A1;
-    if (IsKeyPressed(VK_F3) & 1) return M4A4;
-    if (IsKeyPressed(VK_F4) & 1) return AK47;
-    if (IsKeyPressed(VK_F5) & 1) return GALIL;
-    if (IsKeyPressed(VK_F6) & 1) return FAMAS;
-    if (IsKeyPressed(VK_F7) & 1) return AUG;
-    if (IsKeyPressed(VK_F8) & 1) return SG;
-    if (IsKeyPressed(VK_F9) & 1) return BIZON;
-    if (IsKeyPressed(VK_F10) & 1) return CZ75;
-    if (IsKeyPressed(VK_F11) & 1) return M249;
+    // Check if UMP key is pressed
+    if (config.GetKeyUMP() != 0 && IsKeyPressed(config.GetKeyUMP()))
+        return UMP;
 
-    if (IsKeyPressed(0x31) & 1) return MAC10;   // '1' Key
-    if (IsKeyPressed(0x32) & 1) return MP5SD;   // '2' Key
-    if (IsKeyPressed(0x33) & 1) return MP7;     // '3' Key
-    if (IsKeyPressed(0x34) & 1) return MP9;     // '4' Key
-    if (IsKeyPressed(0x35) & 1) return P90;     // '5' Key
+    // Check if M4A1 key is pressed
+    if (config.GetKeyM4A1() != 0 && IsKeyPressed(config.GetKeyM4A1()))
+        return M4A1;
 
-    return weapon;
+    // Check if M4A4 key is pressed
+    if (config.GetKeyM4A4() != 0 && IsKeyPressed(config.GetKeyM4A4()))
+        return M4A4;
+
+    // Check if AK47 key is pressed
+    if (config.GetKeyAK47() != 0 && IsKeyPressed(config.GetKeyAK47()))
+        return AK47;
+
+    // Check if GALIL key is pressed
+    if (config.GetKeyGALIL() != 0 && IsKeyPressed(config.GetKeyGALIL()))
+        return GALIL;
+
+    // Check if FAMAS key is pressed
+    if (config.GetKeyFAMAS() != 0 && IsKeyPressed(config.GetKeyFAMAS()))
+        return FAMAS;
+
+    // Check if AUG key is pressed
+    if (config.GetKeyAUG() != 0 && IsKeyPressed(config.GetKeyAUG()))
+        return AUG;
+
+    // Check if SG key is pressed
+    if (config.GetKeySG() != 0 && IsKeyPressed(config.GetKeySG()))
+        return SG;
+
+    // Check if BIZON key is pressed
+    if (config.GetKeyBIZON() != 0 && IsKeyPressed(config.GetKeyBIZON()))
+        return BIZON;
+
+    // Check if CZ75 key is pressed
+    if (config.GetKeyCZ75() != 0 && IsKeyPressed(config.GetKeyCZ75()))
+        return CZ75;
+
+    // Check if M249 key is pressed
+    if (config.GetKeyM249() != 0 && IsKeyPressed(config.GetKeyM249()))
+        return M249;
+
+    // Check if MAC10 key is pressed
+    if (config.GetKeyMAC10() != 0 && IsKeyPressed(config.GetKeyMAC10()))
+        return MAC10;
+
+    // Check if MP5SD key is pressed
+    if (config.GetKeyMP5SD() != 0 && IsKeyPressed(config.GetKeyMP5SD()))
+        return MP5SD;
+
+    // Check if MP7 key is pressed
+    if (config.GetKeyMP7() != 0 && IsKeyPressed(config.GetKeyMP7()))
+        return MP7;
+
+    // Check if MP9 key is pressed
+    if (config.GetKeyMP9() != 0 && IsKeyPressed(config.GetKeyMP9()))
+        return MP9;
+
+    // Check if P90 key is pressed
+    if (config.GetKeyP90() != 0 && IsKeyPressed(config.GetKeyP90()))
+        return P90;
+
+    // If none of the custom hotkeys are pressed, return the current weapon
+    return currentWeapon;
 }
