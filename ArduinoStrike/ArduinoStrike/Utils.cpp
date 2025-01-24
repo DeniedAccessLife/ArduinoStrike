@@ -82,15 +82,22 @@ void Utils::PrintAscii(const string& ascii)
 
 void Utils::PrintHotkeys(const string& keys)
 {
-	CONSOLE_SCREEN_BUFFER_INFO csbi;
-	GetConsoleScreenBufferInfo(GetStdHandle(STD_OUTPUT_HANDLE), &csbi);
-	int width = csbi.srWindow.Right - csbi.srWindow.Left + 1;
-	int padding = (width - keys.size()) / 2;
+	string line;
+	stringstream ss(keys);
+	vector<string> hotkeys;
 
-	COORD coord = { 0, csbi.srWindow.Bottom };
-	SetConsoleCursorPosition(GetStdHandle(STD_OUTPUT_HANDLE), coord);
+	while (getline(ss, line, '|'))
+	{
+		hotkeys.push_back(line);
+	}
 
-	cout << string(padding, ' ') << keys;
+	COORD coord = { 0, 0 };
+	for (const string& hotkey : hotkeys)
+	{
+		SetConsoleCursorPosition(GetStdHandle(STD_OUTPUT_HANDLE), coord);
+		cout << hotkey << endl;
+		coord.Y++;
+	}
 }
 
 void Utils::PrintCenteredText(const string& text, bool wrap)
