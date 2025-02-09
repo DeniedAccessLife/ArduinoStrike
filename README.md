@@ -19,7 +19,7 @@ ArduinoStrike is a program designed to control the recoil of weapons in **Counte
 | **Rapid Fire**            | Enhances the firing rate of semi-automatic weapons for faster shooting.                          |
 | **Bunny Hop (Bhop)**      | Automatically performing jumps while holding down the spacebar provides quick movement in the game.     |
 | **ColorBot (Color TriggerBot)** | Detects the color change on the screen when aiming with a rifle and fires the fastest possible shot without delay.        |
-| **FastReload**            | Speeds up the reloading process of certain weapons in certain scenarios, allowing you to continue firing faster. |
+| **Fast Reload**            | Speeds up the reloading process of certain weapons in certain scenarios, allowing you to continue firing faster. |
 
 ### Additional Details
 - **Note:** To enable the bhop feature, enter the command `bind mwheeldown +jump` in the game console.  
@@ -94,7 +94,7 @@ If the `Settings.cfg` file is not found when launching the program, you will be 
 | **Recoil confirmation Key**  | Assigns a virtual key code to confirm recoil control or disables it.      | Integer                    | VK_CODE (enable) / `0` (disable) |
 | **ColorBot Activation Key** | Sets a virtual key code to activate ColorBot or disables it. | Integer                  | VK_CODE (enable) / `0` (disable) |
 | **ColorBot Threshold** | Sets the allowed color deviation threshold for ColorBot.       | Integer                     | `0` to `20`                      |
-| **FastReload**        | Enables or disables fast reloading.                             | Integer                     | `1` (enable) / `0` (disable)     |
+| **Fast Reload**        | Enables or disables fast reloading.                             | Integer                     | `1` (enable) / `0` (disable)     |
 
 ### Additional Details
 - **ColorBot Threshold**: Higher values increase tolerance for color variations.
