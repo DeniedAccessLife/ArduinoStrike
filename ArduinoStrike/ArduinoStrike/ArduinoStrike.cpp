@@ -1,85 +1,58 @@
+#include "Bhop.h"
 #include "Utils.h"
+#include "Module.h"
 #include "Config.h"
+#include "Logger.h"
 #include "Arduino.h"
 #include "Weapons.h"
 #include "AsciiArt.h"
 #include "ColorBot.h"
+#include "RapidFire.h"
+#include "AutoAccept.h"
 #include "FastReload.h"
+#include "ModuleManager.h"
+#include "RecoilControl.h"
+volatile bool g_shouldExit = false;
 
-Weapon weapon = OFF;
-
-static void HandleWeaponFire(const Arduino& arduino, Weapon& weapon, const Config& config, const FastReload& fastReload)
+static BOOL WINAPI ConsoleHandler(DWORD dwCtrlType)
 {
-    if (weapon == OFF) return;
-
-    double obs = 0.75 / config.GetZoomSensitivity();
-    double modifier = 2.52 / config.GetSensitivity();
-    modifier = IsKeyHolded(VK_RBUTTON) ? modifier * obs : modifier;
-
-    WeaponData data = GetWeaponData(weapon, modifier);
-
-    if (!(data.x.size() == data.y.size() && data.x.size() == data.delay.size()))
+    if (dwCtrlType == CTRL_C_EVENT)
     {
-        weapon = OFF;
-        return;
+        Logger::LogMessage("Received CTRL+C. Shutting down...");
+        g_shouldExit = true;
+        return TRUE;
     }
 
-    for (size_t i = 0; i < data.x.size(); i++)
-    {
-        if (!IsKeyHolded(VK_LBUTTON) || (config.GetConfirmationKey() != 0 && !IsKeyHolded(config.GetConfirmationKey())))
-        {
-            return;
-        }
-
-        arduino.WriteMessage("MOUSE_LEFT_HOLDED:" + to_string(data.x[i]) + "," + to_string(data.y[i]) + "," + to_string(data.delay[i]));
-        sleep_for(milliseconds(data.delay[i]));
-    }
-
-    arduino.WriteMessage("MOUSE_LEFT_CLICK");
-
-    if (config.GetFastReload() != 0)
-    {
-        fastReload.Process(arduino, weapon);
-    }
-}
-
-static void ProcessKeyEvents(const Arduino& arduino, const Config& config, const ColorBot& colorBot)
-{
-    if (IsKeyHolded(VK_SPACE) && config.GetBhop() != 0)
-    {
-        arduino.WriteMessage("SPACE_BUTTON_HOLDED");
-    }
-
-    if (IsKeyHolded(VK_MBUTTON) && config.GetRapidFire() != 0)
-    {
-        arduino.WriteMessage("MOUSE_MIDDLE_HOLDED");
-    }
-
-    if (IsKeyHolded(config.GetColorBotKey()) && config.GetColorBotKey() != 0)
-    {
-        colorBot.Process(arduino);
-    }
+    return FALSE;
 }
 
 int main()
 {
+    Logger::Init();
+
     Utils utils;
     Config config;
 
+    if (!SetConsoleCtrlHandler(ConsoleHandler, TRUE))
+    {
+        Logger::LogMessage("Failed to set console control handler!", boost::log::trivial::error);
+    }
+
     utils.PrintAscii(ASCII_INTRO);
     Arduino arduino("Arduino Leonardo");
-    utils.PrintAscii(ASCII_OUTRO), utils.PrintHotkeys(ASCII_HOTKEYS);
+    utils.PrintAscii(ASCII_OUTRO), utils.PrintHotkeys(config.GenerateHotkeysString());
 
-    FastReload fastReload;
-    ColorBot colorBot(config.GetColorBotThreshold(), config.GetColorBotKey());
+    ModuleManager manager;
+    manager.AddModule<Bhop>("Bhop", VK_SPACE);
+    manager.AddModule<FastReload>("FastReload");
+    manager.AddModule<RapidFire>("RapidFire", VK_MBUTTON);
+    manager.AddModule<RecoilControl>("RecoilControl", manager);
+    manager.AddModule<AutoAccept>("AutoAccept", config.GetAutoAcceptKey());
+    manager.AddModule<ColorBot>("ColorBot", config.GetColorThreshold(), config.GetColorBotKey());
 
-    while (true)
+    while (!g_shouldExit)
     {
-        weapon = GetWeaponState(weapon);
-
-        HandleWeaponFire(arduino, weapon, config, fastReload);
-        ProcessKeyEvents(arduino, config, colorBot);
-
+        manager.ProcessModules(arduino, config);
         sleep_for(milliseconds(10));
     }
 }

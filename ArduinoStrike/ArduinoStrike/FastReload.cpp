@@ -1,4 +1,5 @@
 #include "FastReload.h"
+#include "Logger.h"
 
 FastReload::FastReload() : times
 {
@@ -11,11 +12,16 @@ FastReload::FastReload() : times
     { SG, 1200 }
 } {}
 
-void FastReload::Process(const Arduino& arduino, const Weapon weapon) const
+void FastReload::SetCurrentWeapon(Weapon weapon)
 {
-    auto iterator = times.find(weapon);
+    currentWeapon = weapon;
+}
 
-    if (iterator != times.end())
+void FastReload::Execute(Arduino& arduino, const Config& config)
+{
+    auto iterator = times.find(currentWeapon);
+
+    if (config.GetFastReload() && iterator != times.end())
     {
         sleep_for(milliseconds(iterator->second));
         arduino.WriteMessage("KEYBOARD_PRESS_Q");

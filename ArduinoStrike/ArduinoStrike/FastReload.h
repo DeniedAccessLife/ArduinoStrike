@@ -2,14 +2,18 @@
 
 #include "Arduino.h"
 #include "Weapons.h"
-#include <unordered_map>
+#include "SystemModule.h"
 
-class FastReload
+class FastReload : public SystemModule
 {
 public:
     FastReload();
-    void Process(const Arduino& arduino, const Weapon weapon) const;
+
+    void SetCurrentWeapon(Weapon weapon);
+
+    void Execute(Arduino& arduino, const Config& config) override;
 
 private:
+    Weapon currentWeapon = OFF;
     unordered_map<Weapon, int> times;
 };

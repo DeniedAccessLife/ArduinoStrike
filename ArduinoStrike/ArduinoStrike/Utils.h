@@ -1,10 +1,5 @@
 #pragma once
-
-#include <sstream>
-#include <fstream>
-#include <iostream>
-#include <windows.h>
-#include <filesystem>
+#include "pch.h"
 
 using namespace std;
 using namespace filesystem;

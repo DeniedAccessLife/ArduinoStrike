@@ -1,23 +1,14 @@
 #pragma once
-#pragma comment(lib, "Setupapi.lib")
 
-#include <regex>
-#include <thread>
-#include <fstream>
-#include <iostream>
-#include <windows.h>
+#pragma comment(lib, "Setupapi.lib")
+#include "Utils.h"
 #include <devguid.h>
 #include <SetupAPI.h>
 
-#ifdef _DEBUG
-#define LOG(msg) Arduino::LogMessage(msg)
-#else
-#define LOG(msg)
-#endif
-
 using namespace std;
-using namespace chrono;
+using namespace std::chrono;
 using namespace this_thread;
+using namespace boost::asio;
 
 struct DeviceInfo
 {
@@ -31,13 +22,14 @@ class Arduino
 public:
     ~Arduino();
     Arduino(LPCSTR name);
-    bool WriteMessage(const string& message) const;
+    bool WriteMessage(const string& message);
 
 private:
-    HANDLE handle;
+    io_context io_context;
+    serial_port serial_port;
+
     bool GetDevice(LPCSTR name, LPSTR port);
     bool LoadConfiguration(const string& file_name, DeviceInfo& config_device);
     bool ExtractProperties(HDEVINFO device_info, SP_DEVINFO_DATA& dev_info_data, DeviceInfo& device);
     bool SelectDevice(const vector<DeviceInfo>& devices, LPSTR port);
-    static void LogMessage(const string& message);
 };

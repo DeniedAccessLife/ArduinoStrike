@@ -83,14 +83,46 @@ void Utils::PrintAscii(const string& ascii)
 void Utils::PrintHotkeys(const string& keys)
 {
 	CONSOLE_SCREEN_BUFFER_INFO csbi;
-	GetConsoleScreenBufferInfo(GetStdHandle(STD_OUTPUT_HANDLE), &csbi);
-	int width = csbi.srWindow.Right - csbi.srWindow.Left + 1;
-	int padding = (width - keys.size()) / 2;
+	HANDLE console = GetStdHandle(STD_OUTPUT_HANDLE);
+	GetConsoleScreenBufferInfo(console, &csbi);
 
-	COORD coord = { 0, csbi.srWindow.Bottom };
-	SetConsoleCursorPosition(GetStdHandle(STD_OUTPUT_HANDLE), coord);
+	size_t start = 0, end;
+	vector<string> hotkeys;
+	const int width = csbi.srWindow.Right - csbi.srWindow.Left + 1;
 
-	cout << string(padding, ' ') << keys;
+	while ((end = keys.find(" | ", start)) != string::npos)
+	{
+		hotkeys.emplace_back(keys.substr(start, end - start));
+		start = end + 3;
+	}
+
+	hotkeys.emplace_back(keys.substr(start));
+
+	if (hotkeys.empty()) return;
+
+	string top, bottom;
+	const size_t split_at = hotkeys.size() / 2;
+
+	for (size_t i = 0; i < split_at; ++i)
+	{
+		if (i > 0) top += " | ";
+		top += hotkeys[i];
+	}
+
+	for (size_t i = split_at; i < hotkeys.size(); ++i)
+	{
+		if (i > split_at) bottom += " | ";
+		bottom += hotkeys[i];
+	}
+
+	const int top_pad = max(0, (width - static_cast<int>(top.length())) / 2);
+	const int bottom_pad = max(0, (width - static_cast<int>(bottom.length())) / 2);
+
+	SetConsoleCursorPosition(console, { static_cast<SHORT>(top_pad), static_cast<SHORT>(csbi.srWindow.Top) });
+	cout << top;
+
+	SetConsoleCursorPosition(console, { static_cast<SHORT>(bottom_pad), static_cast<SHORT>(csbi.srWindow.Bottom) });
+	cout << bottom;
 }
 
 void Utils::PrintCenteredText(const string& text, bool wrap)
@@ -107,7 +139,7 @@ void Utils::PrintCenteredText(const string& text, bool wrap)
 	cout << text;
 
 	if (wrap)
-{
+	{
 		cout << endl;
 	}
 	else
@@ -115,7 +147,6 @@ void Utils::PrintCenteredText(const string& text, bool wrap)
 		SetConsoleCursorPosition(console, { static_cast<SHORT>(padding + text.size()), coord.Y } );
 	}
 }
-
 
 void Utils::ConsoleClear()
 {

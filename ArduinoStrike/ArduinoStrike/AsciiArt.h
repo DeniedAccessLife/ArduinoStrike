@@ -17,5 +17,3 @@ __      __       _   _
                                   
    CTRL + C to stop the program   
 )";
-
-string ASCII_HOTKEYS = "[F12] - OFF | [F1] - UMP-45 | [F2] - M4A1-S | [F3] - M4A4 | [F4] - AK-47 | [F5] - GALIL-AR | [F6] - FAMAS | [F7] - AUG | [F8] - SG-553";

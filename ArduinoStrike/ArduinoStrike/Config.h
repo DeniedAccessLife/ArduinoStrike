@@ -1,59 +1,72 @@
 #pragma once
 
-#include <sstream>
-#include <fstream>
-#include <iostream>
-#include <windows.h>
-#include <filesystem>
-
+#include "pch.h"
+#include "json.hpp"
 using namespace std;
-using namespace filesystem;
+using json = nlohmann::json;
 
-class Config
-{
+class Config {
 public:
     Config();
-
     void Load();
     void Save() const;
-    bool Validate() const;
+    bool Validate(const json& j) const;
+    string GenerateHotkeysString() const;
 
-    int GetBhop() const;
-    void SetBhop(int value);
+    int GetUMPKey() const { return umpKey; }
+    int GetM4A1Key() const { return m4a1Key; }
+    int GetM4A4Key() const { return m4a4Key; }
+    int GetAK47Key() const { return ak47Key; }
+    int GetGALILKey() const { return galilKey; }
+    int GetFAMASKey() const { return famasKey; }
+    int GetAUGKey() const { return augKey; }
+    int GetSGKey() const { return sgKey; }
+    int GetOFFKey() const { return offKey; }
 
-    int GetRapidFire() const;
-    void SetRapidFire(int value);
-
-    int GetSensitivity() const;
-    void SetSensitivity(int value);
-
-    double GetZoomSensitivity() const;
-    void SetZoomSensitivity(double value);
-
-    int GetConfirmationKey() const;
-    void SetConfirmationKey(int value);
-
-    int GetColorBotKey() const;
-    void SetColorBotKey(int value);
-
-    int GetColorBotThreshold() const;
-    void SetColorBotThreshold(int value);
-
-    int GetFastReload() const;
-    void SetFastReload(int value);
+    bool GetBhop() const { return bhop; }
+    bool GetRapidFire() const { return rapidFire; }
+    int GetSensitivity() const { return sensitivity; }
+    double GetZoomSensitivity() const { return zoomSensitivity; }
+    int GetConfirmationKey() const { return confirmationKey; }
+    int GetColorBotKey() const { return colorBotKey; }
+    int GetColorThreshold() const { return colorThreshold; }
+    bool GetFastReload() const { return fastReload; }
+    int GetAutoAcceptKey() const { return autoAcceptKey; }
 
 private:
-    int bhop;
-    int rapidFire;
+    int umpKey = 0x00;
+    int m4a1Key = 0x00;
+    int m4a4Key = 0x00;
+    int ak47Key = 0x00;
+    int galilKey = 0x00;
+    int famasKey = 0x00;
+    int augKey = 0x00;
+    int sgKey = 0x00;
+    int offKey = 0x00;
+
+    bool bhop;
+    bool rapidFire;
+    bool fastReload;
+
     int sensitivity;
     double zoomSensitivity;
-    int confirmationKey;
+    int colorThreshold;
 
-    int colorBotKey;
-    int colorBotThreshold;
-    int fastReload;
+    int confirmationKey = 0x00;
+    int colorBotKey = 0x00;
+    int autoAcceptKey = 0x00;
 
-    int GetValidatedKeyInput(const string& prompt);
-    int GetValidatedIntInput(const string& prompt, int min, int max);
-    double GetValidatedDoubleInput(const string& prompt, double min, double max);
+    void InteractiveSetup();
+    bool OfferDefaultConfig();
+    void ConfigureFeatures();
+    void ConfigureSettings();
+    void ConfigureKeys();
+    int WaitForKeyPress() const;
+    string KeyCodeToString(int code) const;
+    void PrintSuccess() const;
+
+    json ToJson() const;
+    void FromJson(const json& j);
+
+    static const json DEFAULT_CONFIG;
 };

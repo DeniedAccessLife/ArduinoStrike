@@ -1,6 +1,6 @@
 #include "ColorBot.h"
 
-ColorBot::ColorBot(int threshold, int key) : threshold(threshold), key(key)
+ColorBot::ColorBot(int threshold, int activationKey) : HoldableModule(activationKey), threshold(threshold)
 {
     SetProcessDPIAware();
 }
@@ -22,14 +22,14 @@ bool ColorBot::IsColorDifferent(COLORREF color1, COLORREF color2, int threshold)
     return (abs(red1 - red2) > threshold || abs(green1 - green2) > threshold || abs(blue1 - blue2) > threshold);
 }
 
-void ColorBot::Process(const Arduino& arduino) const
+void ColorBot::OnKeyHold(Arduino& arduino, const Config& config)
 {
     POINT cursor;
-    GetCursorPos(&cursor);
+    if (!GetCursorPos(&cursor)) return;
 
     COLORREF initial = GetPixelColor(cursor.x + 2, cursor.y + 2);
 
-    while (IsKeyHolded(key))
+    while (IsKeyHolded(GetKey()))
     {
         GetCursorPos(&cursor);
         COLORREF current = GetPixelColor(cursor.x + 2, cursor.y + 2);
@@ -39,6 +39,6 @@ void ColorBot::Process(const Arduino& arduino) const
             arduino.WriteMessage("MOUSE_LEFT_CLICK");
         }
 
-        sleep_for(milliseconds(100));
+        sleep_for(milliseconds(50));
     }
 }

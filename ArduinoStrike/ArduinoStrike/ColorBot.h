@@ -1,16 +1,16 @@
 #pragma once
 
-#include "Arduino.h"
-#include "Weapons.h"
+#include "HoldableModule.h"
 
-class ColorBot
+class ColorBot : public HoldableModule
 {
 public:
-    ColorBot(int threshold, int key);
-    void Process(const Arduino& arduino) const;
+    ColorBot(int threshold, int activationKey);
+
+protected:
+    void OnKeyHold(Arduino& arduino, const Config& config) override;
 
 private:
-    char key;
     int threshold;
 
     COLORREF GetPixelColor(int x, int y) const;
