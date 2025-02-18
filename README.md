@@ -1,7 +1,7 @@
 # ArduinoStrike
-ArduinoStrike is a program designed to control the recoil of weapons in **Counter-Strike 2** using **Arduino Leonardo** or any other compatible board. This tool simulates mouse movements for recoil control, implements rapid fire for semi-automatic weapons and adds bunny hop functionality. The software does not interact with the game client in any way, which makes it difficult to be detected by anti-cheat.
+**ArduinoStrike** is a program designed to control the recoil of weapons in **Counter-Strike 2** using **Arduino Leonardo** or any other compatible board. This tool simulates mouse movements for recoil control, implements rapid fire for semi-automatic weapons and adds bunny hop functionality. The software does not interact with the game client in any way, which makes it difficult to be detected by anti-cheat.
 
-## Table of Contents
+# Table of Contents
 - [Introduction](#arduinostrike)
 - [Key Features](#key-features)
 - [Getting Started](#getting-started)
@@ -12,28 +12,27 @@ ArduinoStrike is a program designed to control the recoil of weapons in **Counte
 - [Contributing](#contributing)
 - [License](#license)
 
-### Key Features
-| Feature                   | Description                                                                                      |
-|---------------------------|--------------------------------------------------------------------------------------------------|
-| **Recoil Control**        | Reduces gun recoil by simulating controlled downward mouse movements for more accurate shots. |
-| **Rapid Fire**            | Enhances the firing rate of semi-automatic weapons for faster shooting.                          |
-| **Bunny Hop (Bhop)**      | Automatically performing jumps while holding down the spacebar provides quick movement in the game.     |
-| **ColorBot (Color TriggerBot)** | Detects the color change on the screen when aiming with a rifle and fires the fastest possible shot without delay.        |
-| **Fast Reload**            | Speeds up the reloading process of certain weapons in certain scenarios, allowing you to continue firing faster. |
+# Key Features  
+| Feature           | Description                                                                    |
+|-------------------|--------------------------------------------------------------------------------|
+| **Bhop**          | Automatically jumps while holding spacebar, improving movement speed.          |
+| **ColorBot**      | Detects color changes when aiming and fires instantly without delay.           |
+| **RapidFire**     | Increases the fire rate of semi-automatic weapons for faster shooting.         |
+| **FastReload**    | Speeds up reloading in certain situations, allowing faster combat readiness.   |
+| **AutoAccept**    | Automatically accepts match requests when the button appears on the screen.    |
+| **RecoilControl** | Reduces recoil by simulating controlled mouse movements for better accuracy.   |
 
-### Additional Details
+## Additional Details
 - **Note:** To enable the bhop feature, enter the command `bind mwheeldown +jump` in the game console.  
 - **Important:** ArduinoStrike does not require a **USB Host Shield** - the board connects to a PC via USB and works as an HID device.
 
 # Getting Started
-### Requirements
-- **Hardware**: Arduino Leonardo (or compatible board with native USB HID support)
+## Requirements
 - **Software**: Arduino IDE or PlatformIO, Counter-Strike 2
+- **Hardware**: Arduino Leonardo (or compatible board with native USB HID support)
 
-### Installation  
-
-#### Option 1: Using PlatformIO (Recommended)  
-
+## Installation  
+### Option 1: Using PlatformIO (Recommended)  
 1. **Clone the Repository**  
    ```bash  
    git clone https://github.com/DeniedAccessLife/ArduinoStrike.git  
@@ -54,10 +53,9 @@ ArduinoStrike is a program designed to control the recoil of weapons in **Counte
    - If you plan to use a custom board with HID emulation, update the `platformio.ini` file located in the `PlatformIO` folder with the appropriate configurations for your board.  
    - Modify the `upload.bat` script in the same folder to support additional options.  
 
----
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-#### Option 2: Using Arduino IDE  
-
+### Option 2: Using Arduino IDE  
 1. **Clone the Repository**  
    ```bash  
    git clone https://github.com/DeniedAccessLife/ArduinoStrike.git  
@@ -82,26 +80,36 @@ ArduinoStrike is a program designed to control the recoil of weapons in **Counte
 6. **Upload the Firmware**  
    - Click the **Upload** button to flash the firmware onto your board.  
 
-# Configuration
-If the `Settings.cfg` file is not found when launching the program, you will be prompted to enter the following settings into the console:
+# Configuration  
+On first launch, an interactive setup wizard will guide you through feature selection, sensitivity settings, and key bindings. Your preferences will be saved in `Config.json`.  
 
-| Setting               | Description                                                      | Value Type                 | Range/Options                    |
-|-----------------------|------------------------------------------------------------------|----------------------------|----------------------------------|
-| **Bhop**              | Enables or disables the bunny hop.                 | Integer                    | `1` (enable) / `0` (disable)     |
-| **Rapid Fire**        | Enables or disables rapid fire.                                  | Integer                    | `1` (enable) / `0` (disable)     |
-| **Sensitivity**       | Sets game sensitivity level.                                     | Integer                    | `1` to `8`                       |
-| **Zoom Sensitivity**  | Adjusts sensitivity when zoomed in.                              | Decimal                    | `0.01` to `3.00`                 |
-| **Recoil confirmation Key**  | Assigns a virtual key code to confirm recoil control or disables it.      | Integer                    | VK_CODE (enable) / `0` (disable) |
-| **ColorBot Activation Key** | Sets a virtual key code to activate ColorBot or disables it. | Integer                  | VK_CODE (enable) / `0` (disable) |
-| **ColorBot Threshold** | Sets the allowed color deviation threshold for ColorBot.       | Integer                     | `0` to `20`                      |
-| **Fast Reload**        | Enables or disables fast reloading.                             | Integer                     | `1` (enable) / `0` (disable)     |
+## Feature Selection  
+You will be asked whether to enable the following features:  
 
-### Additional Details
-- **ColorBot Threshold**: Higher values increase tolerance for color variations.
-- **Sensitivity and Zoom Sensitivity**: Adjust these to match your gameplay preferences.
-- **Virtual Key Codes (VK_CODE):** You can find VK_CODE values [here](https://learn.microsoft.com/en-us/windows/win32/inputdev/virtual-key-codes) if you want to assign specific keys for activation.
+| Feature       | Description | Options |  
+|--------------|-------------|---------|  
+| **Bunny Hop** | Auto-jumps while holding spacebar for better movement. | `Y` (enable) / `N` (disable) |  
+| **Rapid Fire** | Increases the fire rate of semi-automatic weapons. | `Y` (enable) / `N` (disable) |  
+| **Fast Reload** | Reduces reload time for faster weapon switching. | `Y` (enable) / `N` (disable) |  
 
-These settings will be saved to `Settings.cfg` for future launches. You can edit this file to update the configuration as needed.
+## Parameter Settings  
+You will set the following parameters:  
+
+| Setting            | Description | Range | Example |  
+|--------------------|-------------|--------|---------|  
+| **Sensitivity** | Controls general mouse movement speed. | `1` (slow) to `8` (fast) | `8` |  
+| **Zoom Sensitivity** | Adjusts sensitivity when aiming down sights. | `0.01` (low) to `3.00` (high) | `1.00` |  
+| **ColorBot Threshold** | Determines color variation tolerance for ColorBot activation. Lower values are stricter. | `0` (exact match) to `20` (high tolerance) | `20` |  
+
+## Key Bindings  
+You can assign keys to specific actions. Press the desired key when prompted, or `ESC` to disable the hotkey.  
+
+| Action | Description | Type |  
+|--------|-------------|------|  
+| **Recoil Control Confirmation** | Confirms activation of recoil control while held. | **Hold**   |
+| **ColorBot** | Activates ColorBot only while the key is held down.                  | **Hold**   |
+| **AutoAccept** | Toggles automatic match acceptance on/off.                         | **Toggle** |
+| **Weapons** | Assign keys for different weapons (UMP-45, M4A1-S, M4A4, etc.).       | **Press**  |
 
 # View
 Window of the program.
