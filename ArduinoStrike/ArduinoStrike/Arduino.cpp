@@ -1,5 +1,5 @@
-#include "Arduino.h"
 #include "Logger.h"
+#include "Arduino.h"
 
 Arduino::~Arduino()
 {

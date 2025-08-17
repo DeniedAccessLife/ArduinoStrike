@@ -16,7 +16,7 @@
 #include <ws2tcpip.h>
 
 // Include Windows API headers
-#include <windows.h>
+#include <Windows.h>
 
 // Standard C++ headers for input/output operations
 #include <iostream>

@@ -28,6 +28,11 @@ inline bool IsKeyPressed(int key)
 
 inline bool IsKeyHolded(int key)
 {
+    if (key == VK_LBUTTON)
+    {
+        return (GetKeyState(VK_LBUTTON) & 0x8000) != 0;
+    }
+    
     return (GetAsyncKeyState(key) & 0x8000) != 0;
 }
 
