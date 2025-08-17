@@ -39,8 +39,22 @@ int main()
     }
 
     utils.PrintAscii(ASCII_INTRO);
-    Arduino arduino("Arduino Leonardo");
-    utils.PrintAscii(ASCII_OUTRO), utils.PrintHotkeys(config.GenerateHotkeysString());
+    
+    Arduino* arduino = nullptr;
+
+    try
+    {
+        arduino = new Arduino("Arduino Leonardo");
+    }
+    catch (const runtime_error& e)
+    {
+        Logger::LogMessage("Failed to initialize Arduino: " + string(e.what()));
+        Logger::LogMessage("Exiting...");
+        return 1;
+    }
+    
+    utils.PrintAscii(ASCII_OUTRO);
+    utils.PrintHotkeys(config.GenerateHotkeysString());
 
     ModuleManager manager;
     manager.AddModule<Bhop>("Bhop", VK_SPACE);
@@ -52,7 +66,9 @@ int main()
 
     while (!g_shouldExit)
     {
-        manager.ProcessModules(arduino, config);
+        manager.ProcessModules(*arduino, config);
         sleep_for(milliseconds(10));
     }
+    
+    delete arduino;
 }

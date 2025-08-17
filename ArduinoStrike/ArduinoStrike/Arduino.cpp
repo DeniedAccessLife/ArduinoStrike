@@ -1,6 +1,8 @@
 #include "Logger.h"
 #include "Arduino.h"
 
+extern volatile bool g_shouldExit;
+
 Arduino::~Arduino()
 {
     if (serial_port.is_open())
@@ -13,12 +15,18 @@ Arduino::~Arduino()
 Arduino::Arduino(LPCSTR name) : io_context(), serial_port(io_context)
 {
     char port[100] = "\\.\\";
-
     Logger::LogMessage("Searching for device...");
+
     while (!GetDevice(name, port))
     {
         Logger::LogMessage("Device not found. Retrying...");
         sleep_for(milliseconds(1000));
+        
+        if (g_shouldExit)
+        {
+            Logger::LogMessage("Search interrupted by user request.");
+            throw runtime_error("Device search interrupted");
+        }
     }
 
     Logger::LogMessage(string("Device found: ") + name + " (" + port + ")");
@@ -150,7 +158,7 @@ bool Arduino::GetDevice(LPCSTR name, LPSTR port)
 
         if (devices.empty())
         {
-            Logger::LogMessage("No devices found in the system.");
+            Logger::LogMessage("No devices found in the system!");
             return false;
         }
 
@@ -168,7 +176,7 @@ bool Arduino::LoadConfiguration(const string& file_name, DeviceInfo& config_devi
 
     if (!config)
     {
-        Logger::LogMessage("Configuration file not found.", boost::log::trivial::debug);
+        Logger::LogMessage("Configuration file not found!", boost::log::trivial::debug);
         return false;
     }
 
