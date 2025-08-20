@@ -31,6 +31,21 @@
 - **Software**: Arduino IDE or PlatformIO, Counter-Strike 2
 - **Hardware**: Arduino Leonardo (or compatible board with native USB HID support)
 
+## Dry Run Mode
+For testing purposes, you can run ArduinoStrike without connecting an Arduino device using the dry run mode:
+
+```bash
+ArduinoStrike.exe --dry-run
+# or
+ArduinoStrike.exe -d
+```
+
+In dry run mode:
+- No Arduino connection is established
+- All messages are simulated and logged to file
+- Configuration and hotkeys work normally
+- Perfect for testing configuration and features
+
 ## Installation  
 ### Option 1: Using PlatformIO (Recommended)  
 1. **Clone the Repository**  
