@@ -1,6 +1,7 @@
 #pragma once
 #include "pch.h"
-
+#include "Config.h"
+#include "Logger.h"
 using namespace std;
 using namespace filesystem;
 

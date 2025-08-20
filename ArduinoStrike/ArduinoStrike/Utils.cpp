@@ -7,51 +7,110 @@ Utils::Utils()
 
 void Utils::Install()
 {
-	string random = GenerateRandomData(16);
+    // Get the full path to the current executable
+    char self[MAX_PATH];
+    GetModuleFileNameA(nullptr, self, MAX_PATH);
+    Logger::LogMessage("Install: Current executable path: " + string(self));
 
-	char buffer[MAX_PATH];
-	GetModuleFileNameA(NULL, buffer, MAX_PATH);
+    // Get the system's temporary directory path
+    const auto temp = temp_directory_path();
+    Logger::LogMessage("Install: Temp directory: " + temp.string());
 
-	path executable = buffer;
-	path tempFolder = temp_directory_path();
+    // Generate a random 16-character string for unique folder naming
+    const string random = GenerateRandomData(16);
+    Logger::LogMessage("Install: Generated random data: " + random);
 
-	if (executable.string().substr(0, tempFolder.string().size()) != tempFolder.string())
-	{
-		path destinationFolder = tempFolder / random;
-		path destinationApplication = destinationFolder / (random + ".exe");
+    // Check if we're already running from a temporary directory
+    // If not, we need to copy ourselves there and restart
+    if (!path(self).string().starts_with(temp.string()))
+    {
+        Logger::LogMessage("Install: Not in temp directory, starting self-copy process");
+        
+        // Create target directory path: temp/random_string/
+        const auto target_directory = temp / random;
 
-		try
-		{
-			create_directories(destinationFolder);
-			copy_file(executable, destinationApplication, copy_options::overwrite_existing);
+        // Create target executable path: temp/random_string/random_string.exe
+        const auto target_executable = target_directory / (random + ".exe");
+        Logger::LogMessage("Install: Target path: " + target_executable.string());
 
-			STARTUPINFO si;
-			PROCESS_INFORMATION pi;
+        try
+        {
+            // Create the temporary directory structure
+            create_directories(target_directory);
+            Logger::LogMessage("Install: Created temp directory successfully");
 
-			ZeroMemory(&si, sizeof(si));
-			si.cb = sizeof(si);
-			ZeroMemory(&pi, sizeof(pi));
+            // Copy the current executable to the temporary location
+            copy_file(self, target_executable, copy_options::overwrite_existing);
+            Logger::LogMessage("Install: Executable copied successfully");
 
-			if (CreateProcessA(NULL, (LPSTR)destinationApplication.string().c_str(), NULL, NULL, FALSE, 0, NULL, NULL, &si, &pi))
-			{
-				CloseHandle(pi.hThread);
-				CloseHandle(pi.hProcess);
-				ExitProcess(0);
-			}
-			else
-			{
-				cerr << "Failed to create process." << endl;
-				exit(1);
-			}
-		}
-		catch (exception& ex)
-		{
-			cerr << "Error: " << ex.what() << endl;
-			exit(1);
-		}
-	}
+            // Prepare process creation structures
+            STARTUPINFOA si { sizeof(si) };
+            PROCESS_INFORMATION pi;
 
-	SetConsoleMode(random);
+            // Extract and prepare command line arguments
+            string arguments;
+
+			// GetCommandLineA returns pointer to full command line string
+            if (LPSTR raw_command_line = GetCommandLineA())
+            {
+                // Convert raw command line pointer to string_view for easier manipulation
+                string_view full_command_line(raw_command_line);
+                
+                // Find the first space to separate executable name from arguments
+                if (auto space_position = full_command_line.find(' '); space_position != string_view::npos)
+                {
+                    // Extract everything after the executable name (the actual arguments)
+                    arguments = full_command_line.substr(space_position + 1);
+                    
+                    // Only log if we actually have arguments
+                    if (!arguments.empty())
+                    {
+                        Logger::LogMessage("Install: Extracted arguments: " + arguments);
+                    }
+					else
+					{
+						Logger::LogMessage("Install: No command line arguments found");
+					}
+                }
+            }
+            else
+            {
+                Logger::LogMessage("Install: Failed to get command line");
+            }
+
+            // Launch the copied executable with the same arguments
+			if (CreateProcessA(target_executable.string().c_str(), arguments.empty() ? nullptr : const_cast<char*>(arguments.c_str()), nullptr, nullptr, FALSE, 0, nullptr, nullptr, &si, &pi))
+            {
+                Logger::LogMessage("Install: New process launched successfully, exiting current process");
+                
+                // Clean up process handles to prevent resource leaks
+                CloseHandle(pi.hThread);
+                CloseHandle(pi.hProcess);
+
+                // Exit the current process - the new one will continue running
+                ExitProcess(0);
+            }
+
+            // If process creation failed, throw an error
+            Logger::LogMessage("Install: CreateProcess failed", boost::log::trivial::error);
+            throw runtime_error("CreateProcess failed!");
+        }
+        catch (const exception& ex)
+        {
+            // Log the error and exit if installation fails
+            Logger::LogMessage("Install: Installation failed: " + string(ex.what()), boost::log::trivial::error);
+            cerr << "Installation failed: " << ex.what() << endl;
+            ExitProcess(1);
+        }
+    }
+    else
+    {
+        Logger::LogMessage("Install: Already running from temp directory, skipping self-copy");
+    }
+
+    // Set the console title to the random string
+    SetConsoleMode(random);
+    Logger::LogMessage("Install: Console mode set, installation complete");
 }
 
 void Utils::PrintAscii(const string& ascii)
