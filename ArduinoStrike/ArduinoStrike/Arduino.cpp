@@ -1,6 +1,5 @@
 #include "Logger.h"
 #include "Arduino.h"
-
 extern volatile bool g_shouldExit;
 
 Arduino::~Arduino()
@@ -12,8 +11,13 @@ Arduino::~Arduino()
     }
 }
 
-Arduino::Arduino(LPCSTR name) : io_context(), serial_port(io_context)
+Arduino::Arduino(LPCSTR name, bool dry_run) : io_context(), serial_port(io_context), dry_run(dry_run)
 {
+    if (dry_run)
+    {
+        return;
+    }
+
     char port[100] = "\\.\\";
     Logger::LogMessage("Searching for device...");
 
@@ -275,6 +279,12 @@ bool Arduino::SelectDevice(const vector<DeviceInfo>& devices, LPSTR port)
 
 bool Arduino::WriteMessage(const string& message)
 {
+    if (dry_run)
+    {
+        Logger::LogMessage("Message sent: " + message);
+        return true;
+    }
+
     if (!serial_port.is_open())
     {
         Logger::LogMessage("Attempt to write to a closed serial port");

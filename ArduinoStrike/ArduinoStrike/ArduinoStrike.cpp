@@ -26,13 +26,32 @@ static BOOL WINAPI ConsoleHandler(DWORD dwCtrlType)
     return FALSE;
 }
 
-int main()
+int main(int argc, char* argv[])
 {
     Logger::Init();
 
     Utils utils;
     Config config;
-
+    
+    Logger::LogMessage("Main: argc = " + to_string(argc));
+    for (int i = 0; i < argc; i++)
+    {
+        Logger::LogMessage("Main: argv[" + to_string(i) + "] = " + string(argv[i]));
+    }
+    
+    bool dry_run = false;
+    for (int i = 1; i < argc; i++)
+    {
+        string arg = argv[i];
+        Logger::LogMessage("Main: Checking argument: " + arg);
+        
+        if (arg == "--dry-run" || arg == "-d")
+        {
+            dry_run = true;
+            Logger::LogMessage("Main: Dry run mode enabled via command line argument!");
+        }
+    }
+    
     if (!SetConsoleCtrlHandler(ConsoleHandler, TRUE))
     {
         Logger::LogMessage("Failed to set console control handler!", boost::log::trivial::error);
@@ -44,7 +63,7 @@ int main()
 
     try
     {
-        arduino = new Arduino("Arduino Leonardo");
+        arduino = new Arduino("Arduino Leonardo", dry_run);
     }
     catch (const runtime_error& e)
     {

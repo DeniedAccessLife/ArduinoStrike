@@ -4,7 +4,6 @@
 #include "Utils.h"
 #include <devguid.h>
 #include <SetupAPI.h>
-
 using namespace std;
 using namespace std::chrono;
 using namespace this_thread;
@@ -21,10 +20,11 @@ class Arduino
 {
 public:
     ~Arduino();
-    Arduino(LPCSTR name);
+    Arduino(LPCSTR name, bool dry_run = false);
     bool WriteMessage(const string& message);
 
 private:
+    bool dry_run;
     io_context io_context;
     serial_port serial_port;
 
