@@ -25,7 +25,7 @@ public:
 
     bool GetBhop() const { return bhop; }
     bool GetRapidFire() const { return rapidFire; }
-    int GetSensitivity() const { return sensitivity; }
+    double GetSensitivity() const { return sensitivity; }
     double GetZoomSensitivity() const { return zoomSensitivity; }
     int GetConfirmationKey() const { return confirmationKey; }
     int GetColorBotKey() const { return colorBotKey; }
@@ -48,7 +48,7 @@ private:
     bool rapidFire;
     bool fastReload;
 
-    int sensitivity;
+    double sensitivity;
     double zoomSensitivity;
     int colorThreshold;
 
@@ -67,6 +67,8 @@ private:
 
     json ToJson() const;
     void FromJson(const json& j);
+    
+    static string FormatFloat(double value, int precision = 2);
 
     static const json DEFAULT_CONFIG;
 };

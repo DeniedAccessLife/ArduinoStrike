@@ -16,7 +16,7 @@ const json Config::DEFAULT_CONFIG =
     { "rapidFire", true },
     { "fastReload", false },
 
-    { "sensitivity", 8 },
+    { "sensitivity", 8.0 },
     { "zoomSensitivity", 1.0 },
     { "colorThreshold", 20 },
 
@@ -168,7 +168,7 @@ bool Config::Validate(const json& j) const
             { "augKey", 0, 0xFE },
             { "sgKey", 0, 0xFE },
             { "offKey", 0, 0xFE },
-            { "sensitivity", 1, 8 },
+            { "sensitivity", 1.0, 8.0 },
             { "zoomSensitivity", 0.01, 3.0 },
             { "colorThreshold", 0, 20 },
             { "confirmationKey", 0, 0xFE },
@@ -351,8 +351,8 @@ void Config::ConfigureSettings()
     sensitivity = GetValidatedInput(
         "Enter your mouse sensitivity for general gameplay.\n"
         "This controls how fast your cursor moves in the game.\n"
-        "Range: 1 (slow) to 8 (fast).\n"
-        "Example: 8\n> ", 1, 8);
+        "Range: 1.0 (slow) to 8.0 (fast).\n"
+        "Example: 8.0\n> ", 1.0, 8.0);
 
     zoomSensitivity = GetValidatedInput(
         "Enter your mouse sensitivity when zoomed in (e.g., aiming down sights).\n"
@@ -590,11 +590,8 @@ void Config::PrintSuccess() const
     printLine("Rapid Fire", (rapidFire ? "ENABLED" : "DISABLED"));
     printLine("Fast Reload", (fastReload ? "ENABLED" : "DISABLED"));
 
-    printLine("Sensitivity", to_string(sensitivity));
-
-    ostringstream oss;
-    oss << fixed << setprecision(2) << zoomSensitivity;
-    printLine("Zoom Sensitivity", oss.str());
+    printLine("Sensitivity", FormatFloat(sensitivity));
+    printLine("Zoom Sensitivity", FormatFloat(zoomSensitivity));
 
     printLine("Color Bot Threshold", to_string(colorThreshold));
 
@@ -672,6 +669,13 @@ void Config::FromJson(const json& j)
     readKey("augKey", augKey);
     readKey("sgKey", sgKey);
     readKey("offKey", offKey);
+}
+
+string Config::FormatFloat(double value, int precision)
+{
+    ostringstream oss;
+    oss << fixed << setprecision(precision) << value;
+    return oss.str();
 }
 
 void Config::Save() const
