@@ -63,9 +63,9 @@ inline WeaponData GetWeaponData(Weapon weapon, double modifier)
 
         case AK47:
             return {
-                { -4 * modifier, 4 * modifier, -3 * modifier, -1 * modifier, 13 * modifier, 8 * modifier, 13 * modifier, -17 * modifier, -42 * modifier, -21 * modifier, 12 * modifier, -15 * modifier, -26 * modifier, -3 * modifier, 40 * modifier, 19 * modifier, 14 * modifier, 27 * modifier, 33 * modifier, -21 * modifier, 7 * modifier, -7 * modifier, -8 * modifier, 19 * modifier, 5 * modifier, -20 * modifier, -33 * modifier, -45 * modifier, -14 * modifier, -14 * modifier },
-                { 7 * modifier, 19 * modifier, 29 * modifier, 31 * modifier, 31 * modifier, 28 * modifier, 21 * modifier, 12 * modifier, -3 * modifier, 2 * modifier, 11 * modifier, 7 * modifier, -8 * modifier, 4 * modifier, 1 * modifier, 7 * modifier, 10 * modifier, 0 * modifier, -10 * modifier, -2 * modifier, 3 * modifier, 9 * modifier, 4 * modifier, -3 * modifier, 6 * modifier, -1 * modifier, -4 * modifier, -21 * modifier, 1 * modifier, 1 * modifier },
-                { 99, 99, 99, 99, 99, 99, 99, 99, 99, 99, 99, 99, 99, 99, 99, 99, 99, 99, 99, 99, 99, 99, 99, 99, 99, 99, 99, 99, 99, 99 }
+                { -1 * modifier, 0 * modifier, 1 * modifier, 4 * modifier, 8 * modifier, 7 * modifier, -1 * modifier,-12 * modifier,-22 * modifier,-19 * modifier,-13 * modifier,-12 * modifier,-8 * modifier,3 * modifier, 17 * modifier,23 * modifier,24 * modifier,21 * modifier,15 * modifier,3 * modifier, -1 * modifier,-2 * modifier,1 * modifier, 3 * modifier, -2 * modifier,-16 * modifier,370 * modifier,550 * modifier,600 * modifier },
+                {15 * modifier, 20 * modifier, 25 * modifier, 30 * modifier, 32 * modifier, 29 * modifier, 25 * modifier, 11 * modifier, 5 * modifier, 3 * modifier, 3 * modifier, 2 * modifier, 2 * modifier, 2 * modifier, 4 * modifier, 5 * modifier, 4 * modifier, 1 * modifier, -3 * modifier, -1 * modifier, 2 * modifier, 5 * modifier, 5 * modifier, 2 * modifier, 1 * modifier, -2 * modifier, -6 * modifier, -9 * modifier, -8 * modifier},
+                { 99, 99, 99, 99, 99, 99, 99, 99, 99, 99, 99, 99, 99, 99, 99, 99, 99, 99, 99, 99, 99, 99, 99, 99, 99, 99, 99, 99, 99 }
             };
 
         case GALIL:
