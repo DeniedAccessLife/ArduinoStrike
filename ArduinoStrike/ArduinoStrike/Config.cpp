@@ -1,16 +1,143 @@
 #include "Config.h"
+#include "Weapons.h"
+#include "ConfigSchema.h"
+#include "ConfigWizard.h"
+
+using namespace std;
+using namespace ConfigSchema;
+
+std::string Config::WeaponToString(Weapon weapon)
+{
+    if (const auto* info = FindWeaponInfo(weapon))
+    {
+        return info->id;
+    }
+    return "";
+}
+
+Weapon Config::WeaponFromString(const std::string& name)
+{
+    if (const auto* info = FindWeaponInfo(name))
+    {
+        return info->weapon;
+    }
+    return OFF;
+}
+
+int Config::GetWeaponKey(Weapon weapon) const
+{
+    auto it = weaponKeys.find(weapon);
+    return it != weaponKeys.end() ? it->second : 0x00;
+}
+
+int Config::GetUMPKey() const { return GetWeaponKey(UMP); }
+int Config::GetM4A1Key() const { return GetWeaponKey(M4A1); }
+int Config::GetM4A4Key() const { return GetWeaponKey(M4A4); }
+int Config::GetAK47Key() const { return GetWeaponKey(AK47); }
+int Config::GetGALILKey() const { return GetWeaponKey(GALIL); }
+int Config::GetFAMASKey() const { return GetWeaponKey(FAMAS); }
+int Config::GetAUGKey() const { return GetWeaponKey(AUG); }
+int Config::GetSGKey() const { return GetWeaponKey(SG); }
+int Config::GetOFFKey() const { return GetWeaponKey(OFF); }
+
+static WeaponData CreateDefaultWeaponData(const vector<double>& x, const vector<double>& y, const vector<int>& delay)
+{
+    WeaponData result;
+    result.x = x;
+    result.y = y;
+    result.delay = delay;
+    return result;
+}
+
+static json WeaponDataToJson(const WeaponData& data)
+{
+    return {
+        { "x", data.x },
+        { "y", data.y },
+        { "delay", data.delay }
+    };
+}
+
+static WeaponData WeaponDataFromJson(const json& j)
+{
+    WeaponData data;
+    if (j.contains("x") && j["x"].is_array())
+    {
+        for (const auto& val : j["x"])
+            data.x.push_back(val.get<double>());
+    }
+    if (j.contains("y") && j["y"].is_array())
+    {
+        for (const auto& val : j["y"])
+            data.y.push_back(val.get<double>());
+    }
+    if (j.contains("delay") && j["delay"].is_array())
+    {
+        for (const auto& val : j["delay"])
+            data.delay.push_back(val.get<int>());
+    }
+    return data;
+}
+
+static json CreateDefaultWeaponRecoilData()
+{
+    return {
+        { "UMP", WeaponDataToJson(CreateDefaultWeaponData(
+            { -1, -4, -2, -4, -9, -3, 11, -4, 9, 18, 15, -1, 5, 0, 9, 5, -12, -19, -1, 15, 17, -6, -20, -3, -3 },
+            { 6, 8, 18, 23, 23, 26, 17, 12, 13, 8, 5, 3, 6, 6, -3, -1, 4, 1, -2, -5, -2, 3, -2, -1, -1 },
+            { 90, 90, 90, 90, 90, 90, 90, 90, 90, 90, 90, 90, 90, 90, 90, 90, 90, 85, 90, 90, 85, 90, 90, 90, 90 }
+        )) },
+        { "M4A1", WeaponDataToJson(CreateDefaultWeaponData(
+            { 1, 0, -4, 4, -6, -4, 14, 8, 18, -4, -14, -25, -19, -22, 1, 8, -9, -13, 3, 1 },
+            { 6, 4, 14, 18, 21, 24, 14, 12, 5, 10, 5, -3, 0, -3, 3, 3, 1, -2, 2, 1 },
+            { 88, 88, 88, 88, 88, 88, 88, 88, 88, 88, 88, 88, 88, 88, 88, 88, 88, 88, 88, 215 }
+        )) },
+        { "M4A4", WeaponDataToJson(CreateDefaultWeaponData(
+            { 0, 2, 0, -6, 7, -9, -5, 16, 11, 22, -4, -18, -30, -24, -25, 0, 8, -11, -13, 2, 33, 10, 27, 10, 11, -12, 6, 4, 3, 4 },
+            { 0, 7, 9, 16, 21, 23, 27, 15, 13, 5, 11, 6, -4, 0, -6, 4, 4, 1, -2, 2, -1, 6, 3, 2, 0, 0, 5, 5, 1, -1 },
+            { 15, 88, 87, 87, 87, 87, 87, 88, 88, 88, 88, 88, 88, 88, 88, 87, 87, 87, 87, 88, 88, 88, 88, 88, 88, 87, 87, 87, 87, 215 }
+        )) },
+        { "AK47", WeaponDataToJson(CreateDefaultWeaponData(
+            { -4, 4, -3, -1, 13, 8, 13, -17, -42, -21, 12, -15, -26, -3, 40, 19, 14, 27, 33, -21, 7, -7, -8, 19, 5, -20, -33, -45, -14, -14 },
+            { 7, 19, 29, 31, 31, 28, 21, 12, -3, 2, 11, 7, -8, 4, 1, 7, 10, 0, -10, -2, 3, 9, 4, -3, 6, -1, -4, -21, 1, 1 },
+            { 99, 99, 99, 99, 99, 99, 99, 99, 99, 99, 99, 99, 99, 99, 99, 99, 99, 99, 99, 99, 99, 99, 99, 99, 99, 99, 99, 99, 99, 99 }
+        )) },
+        { "GALIL", WeaponDataToJson(CreateDefaultWeaponData(
+            { 4, -2, 6, 12, -1, 2, 6, 11, -4, -22, -30, -29, -9, -12, -7, 0, 4, 25, 14, 25, 31, 6, -12, 13, 10, 16, -9, -32, -24, -15, 6, -14, -24, -13, -13 },
+            { 4, 5, 10, 15, 21, 24, 16, 10, 14, 8, -3, -13, 8, 2, 1, 1, 7, 7, 4, -3, -9, 3, 3, -1, -1, -4, 5, -5, -3, 5, 8, -3, -14, -1, -1 },
+            { 90, 90, 90, 90, 90, 90, 90, 90, 90, 90, 90, 90, 90, 90, 90, 90, 50, 90, 90, 90, 90, 90, 90, 90, 90, 90, 90, 90, 90, 90, 90, 90, 90, 90, 90 }
+        )) },
+        { "FAMAS", WeaponDataToJson(CreateDefaultWeaponData(
+            { -4, 1, -6, -1, 0, 14, 16, -6, -20, -16, -13, 4, 23, 12, 20, 5, 15, 3, -4, -25, -3, 11, 15, 15, 15 },
+            { 5, 4, 10, 17, 20, 18, 12, 12, 8, 5, 2, 5, 4, 6, -3, 0, 0, 5, 3, -1, 2, 0, -7, -10, -10 },
+            { 30, 88, 88, 88, 88, 88, 88, 88, 88, 88, 88, 88, 87, 88, 88, 88, 88, 88, 80, 88, 80, 84, 80, 88, 215 }
+        )) },
+        { "AUG", WeaponDataToJson(CreateDefaultWeaponData(
+            { 5, 0, -5, -7, 15, 6, 10, 12, 14, -18, -20, 9, 10, -22, -10, -20, -8, -10, -9, 15, 18, 15, -5, 15, 15, 15, -16, -19, -14, -8 },
+            { 6, 13, 22, 26, 7, 30, 21, 15, 13, 11, 6, 0, 6, 5, -11, -13, 6, 5, 0, 1, 3, 6, 1, -3, -11, 0, 6, 3, 1, 1 },
+            { 99, 99, 99, 99, 99, 99, 99, 99, 99, 99, 99, 99, 99, 99, 99, 99, 99, 99, 99, 99, 99, 99, 99, 99, 99, 99, 99, 99, 99, 99 }
+        )) },
+        { "SG", WeaponDataToJson(CreateDefaultWeaponData(
+            { -4, -13, -9, -6, -8, -8, -6, -5, 7, 6, -8, -15, -5, -6, -8, -2, -18, -20, -10, 19, 20, 15, 20, 15, 20, 20, 20, 20, 16, 6 },
+            { 9, 15, 25, 29, 31, 36, 8, 7, 9, 9, 12, 8, 5, 5, 6, 6, -6, -13, -9, -2, 3, -5, -1, -1, -1, -1, 9, 6, 5, 5 },
+            { 99, 99, 99, 99, 99, 99, 45, 45, 45, 45, 99, 99, 99, 99, 99, 99, 99, 99, 99, 99, 99, 99, 45, 45, 45, 45, 99, 99, 99, 215 }
+        )) }
+    };
+}
 
 const json Config::DEFAULT_CONFIG =
 {
-    { "umpKey", 0x70 },
-    { "m4a1Key", 0x71 },
-    { "m4a4Key", 0x72 },
-    { "ak47Key", 0x73 },
-    { "galilKey", 0x74 },
-    { "famasKey", 0x75 },
-    { "augKey", 0x76 },
-    { "sgKey", 0x77 },
-    { "offKey", 0x7B },
+    { "weaponKeys", {
+        { "OFF", 0x7B },
+        { "UMP", 0x70 },
+        { "M4A1", 0x71 },
+        { "M4A4", 0x72 },
+        { "AK47", 0x73 },
+        { "GALIL", 0x74 },
+        { "FAMAS", 0x75 },
+        { "AUG", 0x76 },
+        { "SG", 0x77 }
+    }},
 
     { "bhop", false },
     { "rapidFire", true },
@@ -22,7 +149,9 @@ const json Config::DEFAULT_CONFIG =
 
     { "confirmationKey", 0x00 },
     { "colorBotKey", 0x58 },
-    { "autoAcceptKey", 0x48 }
+    { "autoAcceptKey", 0x48 },
+    { "turnAroundKey", 0x5A },
+    { "turnAroundDistance", 1022 },
 };
 
 Config::Config()
@@ -32,6 +161,12 @@ Config::Config()
         throw runtime_error("Invalid default config");
     }
 
+    FromJson(DEFAULT_CONFIG);
+    
+    json defaultConfigWithWeapons = DEFAULT_CONFIG;
+    defaultConfigWithWeapons["weaponRecoilData"] = CreateDefaultWeaponRecoilData();
+    LoadWeaponRecoilData(defaultConfigWithWeapons);
+    
     Load();
 }
 
@@ -90,40 +225,28 @@ void Config::Load()
 
 bool Config::Validate(const json& j) const
 {
-    const vector<string> REQUIRED_KEYS =
-    {
-        "umpKey",
-        "m4a1Key",
-        "m4a4Key",
-        "ak47Key",
-        "galilKey",
-        "famasKey",
-        "augKey",
-        "sgKey",
-        "offKey",
-        "bhop",
-        "rapidFire",
-        "fastReload",
-        "sensitivity",
-        "zoomSensitivity",
-        "colorThreshold",
-        "confirmationKey",
-        "colorBotKey",
-        "autoAcceptKey"
-    };
-
-    // Verification of required keys
-    for (const auto& key : REQUIRED_KEYS)
+    for (const auto* key : REQUIRED_KEYS)
     {
         if (!j.contains(key))
         {
-            cerr << "[!] Missing required key: " << key << endl;
+            std::cerr << "[!] Missing required key: " << key << std::endl;
             return false;
         }
     }
+    
+    if (j.contains("weaponKeys") && j["weaponKeys"].is_object())
+    {
+        for (const auto& info : WEAPONS)
+        {
+            if (!j["weaponKeys"].contains(info.id))
+            {
+                std::cerr << "[!] Missing weapon key: " << info.id << std::endl;
+                return false;
+            }
+        }
+    }
 
-    // Auxiliary function for type conversion to string
-    auto TypeToString = [](json::value_t type) -> string
+    auto TypeToString = [](json::value_t type) -> std::string
         {
             switch (type)
             {
@@ -140,50 +263,36 @@ bool Config::Validate(const json& j) const
     {
         bool valid = true;
 
-        const vector<pair<string, json::value_t>> TYPE_CHECKS =
+        for (const auto& check : TYPE_CHECKS)
         {
-            { "bhop", json::value_t::boolean },
-            { "rapidFire", json::value_t::boolean },
-            { "fastReload", json::value_t::boolean }
-        };
-
-        // Type checking
-        for (const auto& [key, type] : TYPE_CHECKS)
-        {
-            if (j[key].type() != type)
+            if (j[check.key].type() != check.type)
             {
-                cerr << "[!] Invalid type for '" << key << "'. Expected: " << TypeToString(type) << endl;
+                std::cerr << "[!] Invalid type for '" << check.key << "'. Expected: " << TypeToString(check.type) << std::endl;
                 valid = false;
             }
         }
 
-        const vector<tuple<string, double, double>> RANGE_CHECKS =
+        if (j.contains("weaponKeys") && j["weaponKeys"].is_object())
         {
-            { "umpKey", 0, 0xFE },
-            { "m4a1Key", 0, 0xFE },
-            { "m4a4Key", 0, 0xFE },
-            { "ak47Key", 0, 0xFE },
-            { "galilKey", 0, 0xFE },
-            { "famasKey", 0, 0xFE },
-            { "augKey", 0, 0xFE },
-            { "sgKey", 0, 0xFE },
-            { "offKey", 0, 0xFE },
-            { "sensitivity", 1.0, 8.0 },
-            { "zoomSensitivity", 0.01, 3.0 },
-            { "colorThreshold", 0, 20 },
-            { "confirmationKey", 0, 0xFE },
-            { "colorBotKey", 0, 0xFE },
-            { "autoAcceptKey", 0, 0xFE }
-        };
-
-        // Checking ranges
-        for (const auto& [key, min, max] : RANGE_CHECKS)
-        {
-            const double value = j[key].get<double>();
-
-            if (value < min || value > max)
+            for (auto it = j["weaponKeys"].begin(); it != j["weaponKeys"].end(); ++it)
             {
-                cerr << "[!] Invalid value for " << key << ": " << value << " (valid range: " << min << "-" << max << ")" << endl;
+                const double value = it.value().get<double>();
+                if (value < 0 || value > 0xFE)
+                {
+                    std::cerr << "[!] Invalid weapon key value for " << it.key() << ": " << value << " (valid range: 0-0xFE)" << std::endl;
+                    valid = false;
+                }
+            }
+        }
+
+        for (const auto& range : RANGE_CHECKS)
+        {
+            const double value = j[range.key].get<double>();
+
+            if (value < range.min || value > range.max)
+            {
+                std::cerr << "[!] Invalid value for " << range.key << ": " << value
+                    << " (valid range: " << range.min << "-" << range.max << ")" << std::endl;
                 valid = false;
             }
         }
@@ -192,32 +301,19 @@ bool Config::Validate(const json& j) const
     }
     catch (const json::exception& e)
     {
-        cerr << "[!] JSON parsing error: " << e.what() << endl;
+        std::cerr << "[!] JSON parsing error: " << e.what() << std::endl;
         return false;
     }
 }
 
-string Config::GenerateHotkeysString() const
+std::string Config::GenerateHotkeysString() const
 {
-    const vector<pair<function<int()>, string>> binds =
-    {
-        { [this]() { return offKey;   }, "OFF"      },
-        { [this]() { return umpKey;   }, "UMP-45"   },
-        { [this]() { return m4a1Key;  }, "M4A1-S"   },
-        { [this]() { return m4a4Key;  }, "M4A4"     },
-        { [this]() { return ak47Key;  }, "AK-47"    },
-        { [this]() { return galilKey; }, "GALIL-AR" },
-        { [this]() { return famasKey; }, "FAMAS"    },
-        { [this]() { return augKey;   }, "AUG"      },
-        { [this]() { return sgKey;    }, "SG-553"   }
-    };
+    std::string result;
 
-    string result;
-
-    for (const auto& [getter, name] : binds)
+    for (const auto& info : WEAPONS)
     {
         if (!result.empty()) result += " | ";
-        result += "[" + KeyCodeToString(getter()) + "] - " + name;
+        result += "[" + KeyCodeToString(GetWeaponKey(info.weapon)) + "] - " + string(info.display);
     }
 
     return result;
@@ -225,208 +321,7 @@ string Config::GenerateHotkeysString() const
 
 void Config::InteractiveSetup()
 {
-    cout << endl << "=== ArduinoStrike config wizard ===" << endl;
-
-    // Step 1: Offering a standard configuration
-    if (OfferDefaultConfig()) return;
-
-    // Step 2: Manual Setup
-    cout << endl << "Let's create your perfect configuration!" << endl;
-    ConfigureFeatures();
-    ConfigureSettings();
-    ConfigureKeys();
-    PrintSuccess();
-    Save();
-
-    cout << endl << "[+] Configuration complete! Happy gaming!" << endl;
-}
-
-bool Config::OfferDefaultConfig()
-{
-    cout << "\nWould you like to use the default settings recommended by the author?\n"
-        << "These settings are optimized for most players.\n"
-        << "Enter Y to show defaults or N to customize settings.\n"
-        << "Show default settings? (Y/N): ";
-
-    char choice;
-    cin >> choice;
-    cin.ignore(numeric_limits<streamsize>::max(), '\n');
-
-    if (toupper(choice) == 'Y')
-    {
-        // Saving the current configuration so that it can be rolled back
-        Config backup = *this;
-
-        // Applying the default settings
-        FromJson(DEFAULT_CONFIG);
-        PrintSuccess();
-
-        cout << endl << "Keep these settings? (Y/N): ";
-
-        cin >> choice;
-        cin.ignore(numeric_limits<streamsize>::max(), '\n');
-
-        if (toupper(choice) == 'Y')
-        {
-            Save();
-            cout << endl << "[+] Default configuration applied!" << endl;
-            return true;
-        }
-
-        // If the user refused, we roll back to the old settings
-        *this = backup;
-    }
-
-    return false;
-}
-
-
-void Config::ConfigureFeatures()
-{
-    cout << endl << "--- FEATURE SELECTION ---" << endl;
-
-    const array<tuple<string, string, bool*>, 3> features =
-    {
-        {
-            { "Bunny Hop", "Automatically jump while holding spacebar for faster movement.", &bhop },
-            { "Rapid Fire", "Increase fire rate of semi-automatic weapons for quicker shots.", &rapidFire },
-            { "Fast Reload", "Reduce reload time for certain weapons to resume firing faster.", &fastReload }
-        }
-    };
-
-    auto getUserResponse = []() -> bool
-        {
-            char input;
-
-            while (true)
-            {
-                cin >> input;
-                cin.ignore(numeric_limits<streamsize>::max(), '\n');
-                input = toupper(input);
-                if (input == 'Y') return true;
-                if (input == 'N') return false;
-                cout << "Invalid input! Please enter Y or N: ";
-            }
-        };
-
-    for (const auto& [name, description, target] : features)
-    {
-        cout << endl << "> " << name << " <" << endl << description << endl << "Enable? (Y/N): ";
-        *target = getUserResponse();
-    }
-}
-
-void Config::ConfigureSettings()
-{
-    cout << endl << "--- PARAMETER SETTINGS ---" << endl;
-
-    auto GetValidatedInput = [](const auto& prompt, auto min, auto max)
-        {
-            using T = decltype(min);
-            T value{};
-
-            while (true)
-            {
-                cout << endl << prompt;
-
-                if (!(cin >> value))
-                {
-                    cin.clear();
-                    cin.ignore(numeric_limits<streamsize>::max(), '\n');
-                    cout << "Invalid input! Please enter a number." << endl;
-                    continue;
-                }
-
-                cin.ignore(numeric_limits<streamsize>::max(), '\n');
-
-                if (value >= min && value <= max)
-                {
-                    return value;
-                }
-
-                cout << "Invalid value! Must be between " << min << " and " << max << endl;
-            }
-        };
-
-    sensitivity = GetValidatedInput(
-        "Enter your mouse sensitivity for general gameplay.\n"
-        "This controls how fast your cursor moves in the game.\n"
-        "Range: 1.0 (slow) to 8.0 (fast).\n"
-        "Example: 8.0\n> ", 1.0, 8.0);
-
-    zoomSensitivity = GetValidatedInput(
-        "Enter your mouse sensitivity when zoomed in (e.g., aiming down sights).\n"
-        "This controls how fast your cursor moves while zooming.\n"
-        "Range: 0.01 (very slow) to 3.00 (very fast).\n"
-        "Example: 1.00\n> ", 0.01, 3.0);
-
-    colorThreshold = GetValidatedInput(
-        "Enter the Color Bot threshold.\n"
-        "This sets how sensitive the Color Bot is to color differences.\n"
-        "Lower values mean stricter matching, higher values allow more variation.\n"
-        "Range: 0 (exact match) to 20 (maximum variation).\n"
-        "Example: 20\n> ", 0, 20);
-}
-
-void Config::ConfigureKeys()
-{
-    cout << endl << "--- HOTKEY BINDING SETUP ---" << endl;
-
-    auto BindKey = [this](const string& action, int& key)
-        {
-            while (true)
-            {
-                cout << "\nPress key for [" << action << "] or ESC to turn off the hotkey..." << endl;
-                int hotkey = WaitForKeyPress();
-
-                if (hotkey == VK_ESCAPE)
-                {
-                    cout << "Hotkey for [" << action << "] disabled!" << endl;
-                    return;
-                }
-
-                if (hotkey == 0)
-                {
-                    cout << "Hotkey input timeout! Try again." << endl;
-                    continue;
-                }
-
-                cout << "-> " << KeyCodeToString(hotkey) << endl;
-                FlushConsoleInputBuffer(GetStdHandle(STD_INPUT_HANDLE));
-                cout << "Confirm this hotkey? (Y/N): ";
-
-                char confirm;
-                cin >> confirm;
-                cin.ignore(numeric_limits<streamsize>::max(), '\n');
-
-                if (toupper(confirm) == 'Y')
-                {
-                    key = hotkey;
-                    break;
-                }
-            }
-        };
-
-    vector<pair<string, reference_wrapper<int>>> bindings =
-    {
-        { "Recoil Control Confirmation", ref(confirmationKey) },
-        { "Color Bot", ref(colorBotKey) },
-        { "Auto Accept", ref(autoAcceptKey) },
-        { "UMP-45", ref(umpKey) },
-        { "M4A1-S", ref(m4a1Key) },
-        { "M4A4", ref(m4a4Key) },
-        { "AK-47", ref(ak47Key) },
-        { "Galil AR", ref(galilKey) },
-        { "FAMAS", ref(famasKey) },
-        { "AUG", ref(augKey) },
-        { "SG-553", ref(sgKey) },
-        { "OFF", ref(offKey) }
-    };
-
-    for (const auto& binding : bindings)
-    {
-        BindKey(binding.first, binding.second.get());
-    }
+    ConfigWizard(*this).Run();
 }
 
 int Config::WaitForKeyPress() const
@@ -449,18 +344,15 @@ int Config::WaitForKeyPress() const
     }
 }
 
-string Config::KeyCodeToString(int code) const
+std::string Config::KeyCodeToString(int code) const
 {
     if (code == 0) return "NONE";
 
-    // Let's try to get the key name via GetKeyNameTextA
     char name[128] = { 0 };
     UINT scanCode = MapVirtualKey(code, MAPVK_VK_TO_VSC);
 
-    // If the code contains an extended bit, it must be set manually
     LONG lParam = scanCode << 16;
 
-    // Some keys require setting an extended flag (for example, arrows, numpad, etc.)
     if (code == VK_RIGHT || code == VK_LEFT || code == VK_UP || code == VK_DOWN || code == VK_INSERT || code == VK_DELETE || code == VK_HOME || code == VK_END || code == VK_PRIOR || code == VK_NEXT)
     {
         lParam |= 0x01000000;
@@ -471,7 +363,6 @@ string Config::KeyCodeToString(int code) const
         return string(name);
     }
 
-    // If GetKeyNameTextA could not get a name, we use a pre-prepared dictionary
     static const unordered_map<int, string> names =
     {
         { VK_LBUTTON, "LMB" },
@@ -598,25 +489,21 @@ void Config::PrintSuccess() const
     printLine("Recoil Control Confirmation", KeyCodeToString(confirmationKey));
     printLine("Color Bot Key", KeyCodeToString(colorBotKey));
     printLine("Auto Accept Key", KeyCodeToString(autoAcceptKey));
+    printLine("Turn Around", KeyCodeToString(turnAroundKey));
+    printLine("Turn Around Distance", to_string(turnAroundDistance));
 
     cout << endl;
-    printLine("UMP-45", KeyCodeToString(umpKey));
-    printLine("M4A1-S", KeyCodeToString(m4a1Key));
-    printLine("M4A4", KeyCodeToString(m4a4Key));
-    printLine("AK-47", KeyCodeToString(ak47Key));
-    printLine("Galil", KeyCodeToString(galilKey));
-    printLine("FAMAS", KeyCodeToString(famasKey));
-    printLine("AUG", KeyCodeToString(augKey));
-    printLine("SG-553", KeyCodeToString(sgKey));
-    printLine("OFF", KeyCodeToString(offKey));
+    for (const auto& info : WEAPONS)
+    {
+        printLine(info.display, KeyCodeToString(GetWeaponKey(info.weapon)));
+    }
 
     cout << "---------------------------" << endl;
 }
 
 json Config::ToJson() const
 {
-    return
-    {
+    json result = {
         { "bhop", bhop },
         { "rapidFire", rapidFire },
         { "fastReload", fastReload },
@@ -629,16 +516,57 @@ json Config::ToJson() const
         { "colorBotKey", colorBotKey },
         { "autoAcceptKey", autoAcceptKey },
 
-        { "umpKey", umpKey },
-        { "m4a1Key", m4a1Key },
-        { "m4a4Key", m4a4Key },
-        { "ak47Key", ak47Key },
-        { "galilKey", galilKey },
-        { "famasKey", famasKey },
-        { "augKey", augKey },
-        { "sgKey", sgKey },
-        { "offKey", offKey }
+        { "turnAroundKey", turnAroundKey },
+        { "turnAroundDistance", turnAroundDistance }
     };
+
+    json weaponKeysJson;
+    for (const auto& [weapon, key] : weaponKeys)
+    {
+        string weaponName = WeaponToString(weapon);
+        if (!weaponName.empty())
+        {
+            weaponKeysJson[weaponName] = key;
+        }
+    }
+    result["weaponKeys"] = weaponKeysJson;
+
+    json recoilData;
+    for (const auto& [weapon, data] : weaponRecoilData)
+    {
+        string weaponName = WeaponToString(weapon);
+        if (!weaponName.empty())
+        {
+            recoilData[weaponName] = WeaponDataToJson(data);
+        }
+    }
+
+    result["weaponRecoilData"] = recoilData;
+    return result;
+}
+
+void Config::LoadWeaponRecoilData(const json& j)
+{
+    weaponRecoilData.clear();
+
+    if (j.contains("weaponRecoilData") && j["weaponRecoilData"].is_object())
+    {
+        const auto& recoilData = j["weaponRecoilData"];
+        for (auto it = recoilData.begin(); it != recoilData.end(); ++it)
+        {
+            Weapon weapon = WeaponFromString(it.key());
+            if (weapon != OFF)
+            {
+                weaponRecoilData[weapon] = WeaponDataFromJson(it.value());
+            }
+        }
+    }
+    else
+    {
+        json defaultConfigWithWeapons = DEFAULT_CONFIG;
+        defaultConfigWithWeapons["weaponRecoilData"] = CreateDefaultWeaponRecoilData();
+        LoadWeaponRecoilData(defaultConfigWithWeapons);
+    }
 }
 
 void Config::FromJson(const json& j)
@@ -660,15 +588,50 @@ void Config::FromJson(const json& j)
     readKey("colorBotKey", colorBotKey);
     readKey("autoAcceptKey", autoAcceptKey);
 
-    readKey("umpKey", umpKey);
-    readKey("m4a1Key", m4a1Key);
-    readKey("m4a4Key", m4a4Key);
-    readKey("ak47Key", ak47Key);
-    readKey("galilKey", galilKey);
-    readKey("famasKey", famasKey);
-    readKey("augKey", augKey);
-    readKey("sgKey", sgKey);
-    readKey("offKey", offKey);
+    readKey("turnAroundKey", turnAroundKey);
+    readKey("turnAroundDistance", turnAroundDistance);
+
+    weaponKeys.clear();
+    if (j.contains("weaponKeys") && j["weaponKeys"].is_object())
+    {
+        for (auto it = j["weaponKeys"].begin(); it != j["weaponKeys"].end(); ++it)
+        {
+            Weapon weapon = WeaponFromString(it.key());
+            if (weapon != OFF || it.key() == "OFF")
+            {
+                weaponKeys[weapon] = it.value().get<int>();
+            }
+        }
+    }
+    else
+    {
+        const vector<pair<string, Weapon>> oldFormatKeys =
+        {
+            { "umpKey", UMP },
+            { "m4a1Key", M4A1 },
+            { "m4a4Key", M4A4 },
+            { "ak47Key", AK47 },
+            { "galilKey", GALIL },
+            { "famasKey", FAMAS },
+            { "augKey", AUG },
+            { "sgKey", SG },
+            { "offKey", OFF }
+        };
+        
+        for (const auto& [keyName, weapon] : oldFormatKeys)
+        {
+            if (j.contains(keyName))
+            {
+                weaponKeys[weapon] = j[keyName].get<int>();
+            }
+            else if (DEFAULT_CONFIG.contains("weaponKeys") && DEFAULT_CONFIG["weaponKeys"].contains(WeaponToString(weapon)))
+            {
+                weaponKeys[weapon] = DEFAULT_CONFIG["weaponKeys"][WeaponToString(weapon)].get<int>();
+            }
+        }
+    }
+
+    LoadWeaponRecoilData(j);
 }
 
 string Config::FormatFloat(double value, int precision)
@@ -676,6 +639,16 @@ string Config::FormatFloat(double value, int precision)
     ostringstream oss;
     oss << fixed << setprecision(precision) << value;
     return oss.str();
+}
+
+WeaponData Config::GetWeaponRecoilData(Weapon weapon) const
+{
+    auto it = weaponRecoilData.find(weapon);
+    if (it != weaponRecoilData.end())
+    {
+        return it->second;
+    }
+    return {};
 }
 
 void Config::Save() const

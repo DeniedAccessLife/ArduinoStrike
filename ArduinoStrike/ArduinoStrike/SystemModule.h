@@ -2,14 +2,14 @@
 
 #include "Module.h"
 
+// Thin semantic tag over Module to mark a module as "system" one.
+// Behaviour is still defined by Execute(), but ModuleManager will
+// treat these modules differently via GetKind().
 class SystemModule : public Module
 {
 public:
-    void Process(Arduino& arduino, const Config& config) override
+    ModuleKind GetKind() const noexcept override
     {
-        Execute(arduino, config);
+        return ModuleKind::System;
     }
-
-protected:
-    virtual void Execute(Arduino& arduino, const Config& config) = 0;
 };

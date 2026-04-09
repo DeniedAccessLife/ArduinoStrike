@@ -1,39 +1,55 @@
 #pragma once
 
-#include "SystemModule.h"
+#include "Module.h"
+#include <memory>
+#include <stdexcept>
+#include <string>
+#include <type_traits>
+#include <typeindex>
+#include <unordered_map>
+#include <utility>
+#include <vector>
 
 class ModuleManager
 {
 public:
     template <typename T, typename... Args>
-    void AddModule(const string& name, Args&&... args)
+    T& AddModule(const std::string& name, Args&&... args)
     {
-        static_assert(is_base_of_v<Module, T>, "Module type must inherit from Module base class");
+        static_assert(std::is_base_of_v<Module, T>, "Module type must inherit from Module base class");
 
-        if (modules_map.contains(name))
+        if (modules_by_name.contains(name))
         {
-            throw invalid_argument("Module " + name + " already registered");
+            throw std::invalid_argument("Module " + name + " already registered");
         }
 
-        auto module = make_unique<T>(forward<Args>(args)...);
+        const std::type_index type = std::type_index(typeid(T));
+        if (modules_by_type.contains(type))
+        {
+            throw std::invalid_argument("Module type already registered");
+        }
 
-        if constexpr (is_base_of_v<SystemModule, T>)
-        {
-            system_modules.push_back(move(module));
-            modules_map[name] = system_modules.back().get();
-        }
-        else
-        {
-            modules_map[name] = module.get();
-            regular_modules.push_back(move(module));
-        }
+        auto module = std::make_unique<T>(std::forward<Args>(args)...);
+        T* const raw = module.get();
+
+        modules_by_name[name] = raw;
+        modules_by_type[type] = raw;
+        regular_modules.push_back(std::move(module));
+        return *raw;
     }
 
     template <typename T>
-    T* GetModule(const string& name) noexcept
+    T* GetModule(const std::string& name) noexcept
     {
-        auto iterator = modules_map.find(name);
-        return iterator != modules_map.end() ? static_cast<T*>(iterator->second) : nullptr;
+        auto iterator = modules_by_name.find(name);
+        return iterator != modules_by_name.end() ? static_cast<T*>(iterator->second) : nullptr;
+    }
+
+    template <typename T>
+    T* GetModule() noexcept
+    {
+        auto iterator = modules_by_type.find(std::type_index(typeid(T)));
+        return iterator != modules_by_type.end() ? static_cast<T*>(iterator->second) : nullptr;
     }
 
     void ProcessModules(Arduino& arduino, const Config& config) noexcept
@@ -45,7 +61,7 @@ public:
     }
 
 private:
-    unordered_map<string, Module*> modules_map;
-    vector<unique_ptr<Module>> regular_modules;
-    vector<unique_ptr<SystemModule>> system_modules;
+    std::unordered_map<std::string, Module*> modules_by_name;
+    std::unordered_map<std::type_index, Module*> modules_by_type;
+    std::vector<std::unique_ptr<Module>> regular_modules;
 };

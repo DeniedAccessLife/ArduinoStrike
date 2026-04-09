@@ -9,6 +9,7 @@
 #include "ColorBot.h"
 #include "RapidFire.h"
 #include "AutoAccept.h"
+#include "TurnAround.h"
 #include "FastReload.h"
 #include "ModuleManager.h"
 #include "RecoilControl.h"
@@ -82,6 +83,7 @@ int main(int argc, char* argv[])
     manager.AddModule<RecoilControl>("RecoilControl", manager);
     manager.AddModule<AutoAccept>("AutoAccept", config.GetAutoAcceptKey());
     manager.AddModule<ColorBot>("ColorBot", config.GetColorThreshold(), config.GetColorBotKey());
+    manager.AddModule<TurnAround>("TurnAround", config.GetTurnAroundKey());
 
     while (!g_shouldExit)
     {

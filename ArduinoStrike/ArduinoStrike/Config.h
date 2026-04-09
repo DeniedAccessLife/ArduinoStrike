@@ -2,8 +2,13 @@
 
 #include "pch.h"
 #include "json.hpp"
-using namespace std;
+
+#include <string>
+#include <unordered_map>
+
 using json = nlohmann::json;
+
+#include "Weapons.h"
 
 class Config {
 public:
@@ -11,64 +16,69 @@ public:
     void Load();
     void Save() const;
     bool Validate(const json& j) const;
-    string GenerateHotkeysString() const;
+    std::string GenerateHotkeysString() const;
 
-    int GetUMPKey() const { return umpKey; }
-    int GetM4A1Key() const { return m4a1Key; }
-    int GetM4A4Key() const { return m4a4Key; }
-    int GetAK47Key() const { return ak47Key; }
-    int GetGALILKey() const { return galilKey; }
-    int GetFAMASKey() const { return famasKey; }
-    int GetAUGKey() const { return augKey; }
-    int GetSGKey() const { return sgKey; }
-    int GetOFFKey() const { return offKey; }
+    int GetWeaponKey(Weapon weapon) const;
+    
+    int GetUMPKey() const;
+    int GetM4A1Key() const;
+    int GetM4A4Key() const;
+    int GetAK47Key() const;
+    int GetGALILKey() const;
+    int GetFAMASKey() const;
+    int GetAUGKey() const;
+    int GetSGKey() const;
+    int GetOFFKey() const;
+
+    int GetConfirmationKey() const { return confirmationKey; }
+    int GetColorBotKey() const { return colorBotKey; }
+    int GetAutoAcceptKey() const { return autoAcceptKey; }
+    int GetTurnAroundKey() const { return turnAroundKey; }
+    int GetTurnAroundDistance() const { return turnAroundDistance; }
 
     bool GetBhop() const { return bhop; }
     bool GetRapidFire() const { return rapidFire; }
+    bool GetFastReload() const { return fastReload; }
     double GetSensitivity() const { return sensitivity; }
     double GetZoomSensitivity() const { return zoomSensitivity; }
-    int GetConfirmationKey() const { return confirmationKey; }
-    int GetColorBotKey() const { return colorBotKey; }
     int GetColorThreshold() const { return colorThreshold; }
-    bool GetFastReload() const { return fastReload; }
-    int GetAutoAcceptKey() const { return autoAcceptKey; }
+
+    WeaponData GetWeaponRecoilData(Weapon weapon) const;
 
 private:
-    int umpKey = 0x00;
-    int m4a1Key = 0x00;
-    int m4a4Key = 0x00;
-    int ak47Key = 0x00;
-    int galilKey = 0x00;
-    int famasKey = 0x00;
-    int augKey = 0x00;
-    int sgKey = 0x00;
-    int offKey = 0x00;
-
-    bool bhop;
-    bool rapidFire;
-    bool fastReload;
-
-    double sensitivity;
-    double zoomSensitivity;
-    int colorThreshold;
+    std::unordered_map<Weapon, int> weaponKeys;
 
     int confirmationKey = 0x00;
     int colorBotKey = 0x00;
     int autoAcceptKey = 0x00;
+    int turnAroundKey = 0x00;
+    int turnAroundDistance = 1800;
+
+    bool bhop;
+    bool rapidFire;
+    bool fastReload;
+    double sensitivity;
+    double zoomSensitivity;
+    int colorThreshold;
+
+    std::unordered_map<Weapon, WeaponData> weaponRecoilData;
+    
+    static std::string WeaponToString(Weapon weapon);
+    static Weapon WeaponFromString(const std::string& name);
 
     void InteractiveSetup();
-    bool OfferDefaultConfig();
-    void ConfigureFeatures();
-    void ConfigureSettings();
-    void ConfigureKeys();
+
     int WaitForKeyPress() const;
-    string KeyCodeToString(int code) const;
+    std::string KeyCodeToString(int code) const;
     void PrintSuccess() const;
 
     json ToJson() const;
     void FromJson(const json& j);
+    void LoadWeaponRecoilData(const json& j);
     
-    static string FormatFloat(double value, int precision = 2);
+    static std::string FormatFloat(double value, int precision = 2);
 
     static const json DEFAULT_CONFIG;
+
+    friend class ConfigWizard;
 };

@@ -2,9 +2,9 @@
 
 #include "Weapons.h"
 #include "ModuleManager.h"
-#include "AutomaticModule.h"
+#include "Module.h"
 
-class RecoilControl : public AutomaticModule
+class RecoilControl : public Module
 {
 public:
     RecoilControl(ModuleManager& manager);

@@ -11,6 +11,12 @@
     <ClCompile Include="Config.cpp">
       <Filter>Config</Filter>
     </ClCompile>
+    <ClCompile Include="ConfigSchema.cpp">
+      <Filter>Config</Filter>
+    </ClCompile>
+    <ClCompile Include="ConfigWizard.cpp">
+      <Filter>Config</Filter>
+    </ClCompile>
     <ClCompile Include="ColorBot.cpp">
       <Filter>Modules\ColorBot</Filter>
     </ClCompile>
@@ -32,6 +38,11 @@
     <ClCompile Include="Logger.cpp">
       <Filter>Logger</Filter>
     </ClCompile>
+    <ClCompile Include="Weapons.cpp" />
+    <ClCompile Include="TurnAround.cpp">
+      <Filter>Modules\TurnAround</Filter>
+    </ClCompile>
+    <ClCompile Include="MouseHumanizer.cpp" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Arduino">
@@ -67,6 +78,9 @@
     <Filter Include="Logger">
       <UniqueIdentifier>{b8e5a23f-310c-45fc-81da-975ea5e07cef}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Modules\TurnAround">
+      <UniqueIdentifier>{b1424ef0-3f9b-447b-9ade-74a400e717d5}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Arduino.h">
@@ -78,6 +92,12 @@
     <ClInclude Include="AsciiArt.h" />
     <ClInclude Include="Weapons.h" />
     <ClInclude Include="Config.h">
+      <Filter>Config</Filter>
+    </ClInclude>
+    <ClInclude Include="ConfigSchema.h">
+      <Filter>Config</Filter>
+    </ClInclude>
+    <ClInclude Include="ConfigWizard.h">
       <Filter>Config</Filter>
     </ClInclude>
     <ClInclude Include="ColorBot.h">
@@ -107,9 +127,6 @@
     <ClInclude Include="SystemModule.h">
       <Filter>Modules</Filter>
     </ClInclude>
-    <ClInclude Include="AutomaticModule.h">
-      <Filter>Modules</Filter>
-    </ClInclude>
     <ClInclude Include="AutoAccept.h">
       <Filter>Modules\AutoAccept</Filter>
     </ClInclude>
@@ -120,5 +137,9 @@
     <ClInclude Include="Logger.h">
       <Filter>Logger</Filter>
     </ClInclude>
+    <ClInclude Include="TurnAround.h">
+      <Filter>Modules\TurnAround</Filter>
+    </ClInclude>
+    <ClInclude Include="MouseHumanizer.h" />
   </ItemGroup>
 </Project>
